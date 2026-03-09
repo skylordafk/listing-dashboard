@@ -21,9 +21,10 @@ import {
   finalizeListingData, listingQualityWarnings, applyListingFormOverrides,
   normalizeItemSpecifics, EBAY_177_ALLOWED_SPECIFICS, type ListingData,
 } from './normalizer.js';
-import { productToListing, type OdooImage } from './field-mapper.js';
+import { productToListing, EBAY_CATEGORY_LAPTOP, type OdooImage } from './field-mapper.js';
 import {
   callUploadApi, buildIdempotencyKey, extractNonzeroFees, formatUploadApiError,
+  type UploadResponseData,
 } from './upload-client.js';
 import { ListingAIGenerator, testAiConnection, type CategoryContext } from './ai-generator.js';
 import {
@@ -194,7 +195,7 @@ function listingDataFromSavedOnly(
 const _categorySpecCache: Record<string, { fetchedAt: number; value: Record<string, string[]> }> = {};
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
 
-async function getCategorySpecificOptions(categoryId: string = '177'): Promise<Record<string, string[]>> {
+async function getCategorySpecificOptions(categoryId: string = EBAY_CATEGORY_LAPTOP): Promise<Record<string, string[]>> {
   const cached = _categorySpecCache[categoryId];
   if (cached && (Date.now() - cached.fetchedAt) < CACHE_TTL_MS) return cached.value;
 
@@ -395,7 +396,7 @@ app.get<{ Params: { productId: string } }>('/products/:productId/preview', async
     const { existing, savedData } = getExistingListing(productId);
     let listingData = mergeSavedListingData(productToListing(product, images), savedData);
 
-    const categoryId = String(listingData.category_id ?? '177');
+    const categoryId = String(listingData.category_id ?? EBAY_CATEGORY_LAPTOP);
     const specificOptions = await getCategorySpecificOptions(categoryId);
     listingData = finalizeListingData(listingData, specificOptions);
     const qualityWarnings = listingQualityWarnings(listingData);
@@ -433,7 +434,7 @@ app.post<{ Params: { productId: string } }>('/products/:productId/approve', asyn
     let listingData = mergeSavedListingData(productToListing(product, images), savedData);
 
     const ebayConfig = loadEbayAppConfig();
-    const categoryId = String((req.body as Record<string, string>).category_id ?? listingData.category_id ?? '177');
+    const categoryId = String((req.body as Record<string, string>).category_id ?? listingData.category_id ?? EBAY_CATEGORY_LAPTOP);
     const categoryOptions = await getCategorySpecificOptions(categoryId);
     listingData = applyListingFormOverrides(
       listingData, req.body as Record<string, string>,
@@ -502,7 +503,7 @@ app.post<{ Params: { productId: string } }>('/products/:productId/edit', async (
     listingData = finalizeListingData(listingData);
 
     const ebayConfig = loadEbayAppConfig();
-    const categoryId = String((req.body as Record<string, string>).category_id ?? listingData.category_id ?? '177');
+    const categoryId = String((req.body as Record<string, string>).category_id ?? listingData.category_id ?? EBAY_CATEGORY_LAPTOP);
     const categoryOptions = await getCategorySpecificOptions(categoryId);
     listingData = applyListingFormOverrides(
       listingData, req.body as Record<string, string>,
@@ -552,7 +553,7 @@ app.post<{ Params: { productId: string } }>('/products/:productId/save-changes',
     }
 
     const ebayConfig = loadEbayAppConfig();
-    const categoryId = String((req.body as Record<string, string>).category_id ?? listingData.category_id ?? '177');
+    const categoryId = String((req.body as Record<string, string>).category_id ?? listingData.category_id ?? EBAY_CATEGORY_LAPTOP);
     const categoryOptions = await getCategorySpecificOptions(categoryId);
     listingData = applyListingFormOverrides(
       listingData, req.body as Record<string, string>,
@@ -612,7 +613,7 @@ app.post<{ Params: { productId: string } }>('/products/:productId/revise-ebay', 
     }
 
     const ebayConfig = loadEbayAppConfig();
-    const categoryId = String((req.body as Record<string, string>).category_id ?? listingData.category_id ?? '177');
+    const categoryId = String((req.body as Record<string, string>).category_id ?? listingData.category_id ?? EBAY_CATEGORY_LAPTOP);
     const categoryOptions = await getCategorySpecificOptions(categoryId);
     listingData = applyListingFormOverrides(
       listingData, req.body as Record<string, string>,
@@ -643,9 +644,9 @@ app.post<{ Params: { productId: string } }>('/products/:productId/revise-ebay', 
       return reply.redirect(`/products/${productId}/preview`);
     }
 
-    const data = result.data!;
+    const data = result.data as UploadResponseData;
     if (data.status === 'success') {
-      const revised = (data.revised_fields as string[]) ?? [];
+      const revised = data.revised_fields ?? [];
       flash(reply, 'success', `✅ eBay listing revised! Updated: ${revised.join(', ')}`);
     } else {
       flash(reply, 'error', `Revise failed: ${data.error ?? 'Unknown error'}`);
@@ -731,9 +732,9 @@ app.post<{ Params: { listingId: string } }>('/listing/:listingId/upload', async 
       return reply.redirect('/queue');
     }
 
-    const data = result.data!;
+    const data = result.data as UploadResponseData;
     if (data.status === 'success') {
-      const ebayItemId = data.ebay_item_id as string;
+      const ebayItemId = data.ebay_item_id;
       updateListingFields(db, listingId, {
         status: 'uploaded',
         ebay_item_id: ebayItemId,
@@ -741,11 +742,11 @@ app.post<{ Params: { listingId: string } }>('/listing/:listingId/upload', async 
       });
       flash(reply, 'success', `✅ Listed on eBay! Item ID: ${ebayItemId}`);
 
-      const fees = extractNonzeroFees((data.fees as unknown[]) ?? []);
+      const fees = extractNonzeroFees(data.fees ?? []);
       if (fees.length > 0) {
         flash(reply, 'info', `Fees: ${fees.map(f => `${f.name}: $${f.amount.toFixed(2)}`).join(', ')}`);
       }
-      const warnings = (data.warnings as Array<{ code: string; message: string }>) ?? [];
+      const warnings = data.warnings ?? [];
       for (const w of warnings) flash(reply, 'warning', `eBay warning [${w.code}]: ${w.message}`);
     } else {
       const errorMsg = String(data.error ?? 'Unknown error').slice(0, 500);
