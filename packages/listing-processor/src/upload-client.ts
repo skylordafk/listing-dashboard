@@ -4,12 +4,26 @@
 import { createHash } from 'node:crypto';
 import { UPLOAD_API_URL, loadUploadApiKey } from './config.js';
 
-export interface UploadApiResult {
+export interface UploadResponseData {
+  status?: string;
+  ebay_item_id?: string;
+  revised?: boolean;
+  revised_fields?: string[];
+  listing_id?: number;
+  ebay_url?: string;
+  images_uploaded?: number;
+  fees?: unknown[];
+  warnings?: Array<{ code: string; message: string }>;
+  error?: string;
+  type?: string;
+}
+
+export interface UploadApiResult<T = Record<string, unknown>> {
   ok: boolean;
   error_type?: string;
   message?: string;
   status_code?: number;
-  data?: Record<string, unknown>;
+  data?: T;
 }
 
 interface CallOptions {

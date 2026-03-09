@@ -24,6 +24,7 @@ import {
 import { productToListing, type OdooImage } from './field-mapper.js';
 import {
   callUploadApi, buildIdempotencyKey, extractNonzeroFees, formatUploadApiError,
+  type UploadResponseData,
 } from './upload-client.js';
 import { ListingAIGenerator, testAiConnection, type CategoryContext } from './ai-generator.js';
 import {
@@ -643,9 +644,9 @@ app.post<{ Params: { productId: string } }>('/products/:productId/revise-ebay', 
       return reply.redirect(`/products/${productId}/preview`);
     }
 
-    const data = result.data!;
+    const data = result.data as UploadResponseData;
     if (data.status === 'success') {
-      const revised = (data.revised_fields as string[]) ?? [];
+      const revised = data.revised_fields ?? [];
       flash(reply, 'success', `✅ eBay listing revised! Updated: ${revised.join(', ')}`);
     } else {
       flash(reply, 'error', `Revise failed: ${data.error ?? 'Unknown error'}`);
@@ -731,9 +732,9 @@ app.post<{ Params: { listingId: string } }>('/listing/:listingId/upload', async 
       return reply.redirect('/queue');
     }
 
-    const data = result.data!;
+    const data = result.data as UploadResponseData;
     if (data.status === 'success') {
-      const ebayItemId = data.ebay_item_id as string;
+      const ebayItemId = data.ebay_item_id;
       updateListingFields(db, listingId, {
         status: 'uploaded',
         ebay_item_id: ebayItemId,
@@ -741,11 +742,11 @@ app.post<{ Params: { listingId: string } }>('/listing/:listingId/upload', async 
       });
       flash(reply, 'success', `✅ Listed on eBay! Item ID: ${ebayItemId}`);
 
-      const fees = extractNonzeroFees((data.fees as unknown[]) ?? []);
+      const fees = extractNonzeroFees(data.fees ?? []);
       if (fees.length > 0) {
         flash(reply, 'info', `Fees: ${fees.map(f => `${f.name}: $${f.amount.toFixed(2)}`).join(', ')}`);
       }
-      const warnings = (data.warnings as Array<{ code: string; message: string }>) ?? [];
+      const warnings = data.warnings ?? [];
       for (const w of warnings) flash(reply, 'warning', `eBay warning [${w.code}]: ${w.message}`);
     } else {
       const errorMsg = String(data.error ?? 'Unknown error').slice(0, 500);
