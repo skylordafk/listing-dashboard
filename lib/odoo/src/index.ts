@@ -14,10 +14,12 @@ export {
   getProductByEbayItemId,
   uploadAttachment,
   getAttachments,
+  getAttachmentsWithData,
+  batchCountAttachments,
   countAttachments,
   isReadyToList,
 } from './products.js';
-export type { Attachment } from './products.js';
+export type { Attachment, AttachmentWithData } from './products.js';
 
 export {
   CUSTOM_FIELDS,
