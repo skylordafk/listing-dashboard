@@ -50,6 +50,12 @@
     <% } %>
 </div>
 
+<% if (it.resultsCapped) { %>
+<div class="panel" style="border-color: var(--orange); background: var(--surface-alt);">
+    <span class="text-orange font-600">&#9888; Results capped:</span> Showing first 2,000 of <%= it.cappedTotal.toLocaleString() %> products. Use filters to narrow results.
+</div>
+<% } %>
+
 <% if (it.error) { %>
 <div class="panel" style="border-color: var(--red);">
     <span class="text-red font-600">Error:</span> <%= it.error %>
