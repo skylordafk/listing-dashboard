@@ -88,9 +88,9 @@ function ebayErrorResponse(err: unknown, listingId: number, action: string) {
 async function uploadListing(listing: ListingRow): Promise<{ body: Record<string, unknown>; code: number }> {
   const listingId = listing.id;
   const productId = listing.odoo_product_id;
-  const listingData = JSON.parse(listing.listing_data) as ListingData;
 
   try {
+    const listingData = JSON.parse(listing.listing_data) as ListingData;
     // Step 1: Mark uploading
     updateListingStatus(db, listingId, 'uploading');
 
@@ -174,9 +174,9 @@ async function uploadListing(listing: ListingRow): Promise<{ body: Record<string
 async function verifyListing(listing: ListingRow): Promise<{ body: Record<string, unknown>; code: number }> {
   const listingId = listing.id;
   const productId = listing.odoo_product_id;
-  const listingData = JSON.parse(listing.listing_data) as ListingData;
 
   try {
+    const listingData = JSON.parse(listing.listing_data) as ListingData;
     const odoo = OdooClient.fromEnv();
     const attachments = await odoo.searchRead<{ id: number; datas: string; name: string }>(
       'ir.attachment',
@@ -351,7 +351,12 @@ app.post<{ Params: { listingId: string }; Body: { title?: string; price?: number
       return reply.code(400).send({ error: 'No eBay item ID on this listing' });
     }
 
-    const listingData = JSON.parse(listing.listing_data) as Record<string, unknown>;
+    let listingData: Record<string, unknown>;
+    try {
+      listingData = JSON.parse(listing.listing_data) as Record<string, unknown>;
+    } catch (parseErr) {
+      return reply.code(500).send({ status: 'error', error: `Invalid listing_data JSON: ${(parseErr as Error).message}` });
+    }
     const body = req.body ?? {};
 
     const updates: Record<string, unknown> = {};
