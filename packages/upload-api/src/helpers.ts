@@ -21,6 +21,6 @@ export function loadApiKey(): string {
   }
 
   const newKey = randomBytes(24).toString('hex');
-  console.log(`No API key found. Generated: ${newKey}`);
+  console.log(`No API key found. Generated new key (${newKey.slice(0, 8)}...)`);
   return newKey;
 }
