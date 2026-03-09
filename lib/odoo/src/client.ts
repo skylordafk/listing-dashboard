@@ -80,11 +80,20 @@ export class OdooClient {
       params: { service, method, args },
     });
 
-    const res = await fetch(`${this.url}/jsonrpc`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body,
-    });
+    let res: Response;
+    try {
+      res = await fetch(`${this.url}/jsonrpc`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+        signal: AbortSignal.timeout(30_000),
+      });
+    } catch (err) {
+      if (err instanceof Error && err.name === 'TimeoutError') {
+        throw new OdooClientError('Odoo RPC timed out after 30s');
+      }
+      throw err;
+    }
 
     if (!res.ok) {
       throw new OdooClientError(`HTTP ${res.status}: ${res.statusText}`);
