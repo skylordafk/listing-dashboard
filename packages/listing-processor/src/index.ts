@@ -21,7 +21,7 @@ import {
   finalizeListingData, listingQualityWarnings, applyListingFormOverrides,
   normalizeItemSpecifics, EBAY_177_ALLOWED_SPECIFICS, type ListingData,
 } from './normalizer.js';
-import { productToListing, type OdooImage } from './field-mapper.js';
+import { productToListing, EBAY_CATEGORY_LAPTOP, type OdooImage } from './field-mapper.js';
 import {
   callUploadApi, buildIdempotencyKey, extractNonzeroFees, formatUploadApiError,
   type UploadResponseData,
@@ -195,7 +195,7 @@ function listingDataFromSavedOnly(
 const _categorySpecCache: Record<string, { fetchedAt: number; value: Record<string, string[]> }> = {};
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
 
-async function getCategorySpecificOptions(categoryId: string = '177'): Promise<Record<string, string[]>> {
+async function getCategorySpecificOptions(categoryId: string = EBAY_CATEGORY_LAPTOP): Promise<Record<string, string[]>> {
   const cached = _categorySpecCache[categoryId];
   if (cached && (Date.now() - cached.fetchedAt) < CACHE_TTL_MS) return cached.value;
 
@@ -396,7 +396,7 @@ app.get<{ Params: { productId: string } }>('/products/:productId/preview', async
     const { existing, savedData } = getExistingListing(productId);
     let listingData = mergeSavedListingData(productToListing(product, images), savedData);
 
-    const categoryId = String(listingData.category_id ?? '177');
+    const categoryId = String(listingData.category_id ?? EBAY_CATEGORY_LAPTOP);
     const specificOptions = await getCategorySpecificOptions(categoryId);
     listingData = finalizeListingData(listingData, specificOptions);
     const qualityWarnings = listingQualityWarnings(listingData);
@@ -434,7 +434,7 @@ app.post<{ Params: { productId: string } }>('/products/:productId/approve', asyn
     let listingData = mergeSavedListingData(productToListing(product, images), savedData);
 
     const ebayConfig = loadEbayAppConfig();
-    const categoryId = String((req.body as Record<string, string>).category_id ?? listingData.category_id ?? '177');
+    const categoryId = String((req.body as Record<string, string>).category_id ?? listingData.category_id ?? EBAY_CATEGORY_LAPTOP);
     const categoryOptions = await getCategorySpecificOptions(categoryId);
     listingData = applyListingFormOverrides(
       listingData, req.body as Record<string, string>,
@@ -503,7 +503,7 @@ app.post<{ Params: { productId: string } }>('/products/:productId/edit', async (
     listingData = finalizeListingData(listingData);
 
     const ebayConfig = loadEbayAppConfig();
-    const categoryId = String((req.body as Record<string, string>).category_id ?? listingData.category_id ?? '177');
+    const categoryId = String((req.body as Record<string, string>).category_id ?? listingData.category_id ?? EBAY_CATEGORY_LAPTOP);
     const categoryOptions = await getCategorySpecificOptions(categoryId);
     listingData = applyListingFormOverrides(
       listingData, req.body as Record<string, string>,
@@ -553,7 +553,7 @@ app.post<{ Params: { productId: string } }>('/products/:productId/save-changes',
     }
 
     const ebayConfig = loadEbayAppConfig();
-    const categoryId = String((req.body as Record<string, string>).category_id ?? listingData.category_id ?? '177');
+    const categoryId = String((req.body as Record<string, string>).category_id ?? listingData.category_id ?? EBAY_CATEGORY_LAPTOP);
     const categoryOptions = await getCategorySpecificOptions(categoryId);
     listingData = applyListingFormOverrides(
       listingData, req.body as Record<string, string>,
@@ -613,7 +613,7 @@ app.post<{ Params: { productId: string } }>('/products/:productId/revise-ebay', 
     }
 
     const ebayConfig = loadEbayAppConfig();
-    const categoryId = String((req.body as Record<string, string>).category_id ?? listingData.category_id ?? '177');
+    const categoryId = String((req.body as Record<string, string>).category_id ?? listingData.category_id ?? EBAY_CATEGORY_LAPTOP);
     const categoryOptions = await getCategorySpecificOptions(categoryId);
     listingData = applyListingFormOverrides(
       listingData, req.body as Record<string, string>,
