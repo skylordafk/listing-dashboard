@@ -58,16 +58,27 @@ export class OdooClient {
    * Env vars: ODOO_URL, ODOO_DB, ODOO_UID, ODOO_API_KEY
    */
   static fromEnv(overrides?: Partial<OdooConfig>): OdooClient {
-    const config: OdooConfig = {
-      url: overrides?.url ?? process.env.ODOO_URL ?? 'http://192.168.1.103:8069',
-      db: overrides?.db ?? process.env.ODOO_DB ?? 'spv-oodo',
-      uid: overrides?.uid ?? Number(process.env.ODOO_UID ?? '2'),
-      apiKey: overrides?.apiKey ?? process.env.ODOO_API_KEY ?? '',
-    };
-    if (!config.apiKey) {
-      throw new OdooClientError('ODOO_API_KEY is required');
+    const url = overrides?.url ?? process.env.ODOO_URL;
+    const db = overrides?.db ?? process.env.ODOO_DB;
+    const uid = overrides?.uid ?? process.env.ODOO_UID;
+    const apiKey = overrides?.apiKey ?? process.env.ODOO_API_KEY;
+
+    const missing: string[] = [];
+    if (!url) missing.push('ODOO_URL');
+    if (!db) missing.push('ODOO_DB');
+    if (uid === undefined || uid === null || uid === '') missing.push('ODOO_UID');
+    if (!apiKey) missing.push('ODOO_API_KEY');
+
+    if (missing.length > 0) {
+      throw new OdooClientError(`Missing required environment variables: ${missing.join(', ')}`);
     }
-    return new OdooClient(config);
+
+    return new OdooClient({
+      url: url!,
+      db: db!,
+      uid: typeof uid === 'number' ? uid : Number(uid),
+      apiKey: apiKey!,
+    });
   }
 
   /** Raw JSON-RPC call. */
