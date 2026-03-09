@@ -755,6 +755,12 @@ app.post<{ Params: { listingId: string } }>('/listing/:listingId/upload', async 
     const data = result.data as UploadResponseData;
     if (data.status === 'success') {
       const ebayItemId = data.ebay_item_id;
+      if (!ebayItemId) {
+        const errorMsg = 'Upload reported success but returned no eBay item ID';
+        updateListingFields(db, listingId, { status: 'failed', error_message: errorMsg });
+        flash(reply, 'error', errorMsg);
+        return reply.redirect('/queue');
+      }
       updateListingFields(db, listingId, {
         status: 'uploaded',
         ebay_item_id: ebayItemId,
