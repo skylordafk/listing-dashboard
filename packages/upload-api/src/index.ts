@@ -128,6 +128,15 @@ async function uploadListing(listing: ListingRow): Promise<{ body: Record<string
       }
     }
 
+    if (imageUrls.length === 0 && attachments.length > 0) {
+      const errMsg = 'All image uploads failed — no images available for listing';
+      updateListingStatus(db, listingId, 'failed', { error_message: errMsg });
+      return {
+        body: { status: 'error', listing_id: listingId, error: errMsg },
+        code: 502,
+      };
+    }
+
     // Step 4-5: Create eBay listing
     const result = await ebay.addItem(listingData, imageUrls);
     const ebayItemId = result.itemId;
@@ -206,6 +215,17 @@ async function verifyListing(listing: ListingRow): Promise<{ body: Record<string
       } catch (err) {
         console.warn('Failed to upload image:', (err as Error).message);
       }
+    }
+
+    if (imageUrls.length === 0 && attachments.length > 0) {
+      return {
+        body: {
+          status: 'error',
+          listing_id: listingId,
+          error: 'All image uploads failed — no images available for listing',
+        },
+        code: 502,
+      };
     }
 
     const result = await ebay.verifyAddItem(listingData, imageUrls);
