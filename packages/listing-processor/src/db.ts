@@ -163,6 +163,11 @@ export function upsertListing(
   return Number(result.lastInsertRowid);
 }
 
+const ALLOWED_LISTING_COLUMNS = new Set([
+  'status', 'listing_data', 'title', 'price', 'notes',
+  'error_message', 'category_id', 'approved_at', 'ebay_item_id', 'uploaded_at',
+]);
+
 export function updateListingFields(
   db: Database.Database,
   id: number,
@@ -171,6 +176,7 @@ export function updateListingFields(
   const sets: string[] = [];
   const params: unknown[] = [];
   for (const [key, value] of Object.entries(fields)) {
+    if (!ALLOWED_LISTING_COLUMNS.has(key)) throw new Error(`Unexpected column: ${key}`);
     sets.push(`${key} = ?`);
     params.push(value);
   }
