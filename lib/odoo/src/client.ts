@@ -39,6 +39,8 @@ export class OdooClientError extends Error {
   }
 }
 
+const RPC_TIMEOUT_MS = 30_000;
+
 export class OdooClient {
   private readonly url: string;
   private readonly db: string;
@@ -80,11 +82,24 @@ export class OdooClient {
       params: { service, method, args },
     });
 
-    const res = await fetch(`${this.url}/jsonrpc`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body,
-    });
+    const url = `${this.url}/jsonrpc`;
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+        signal: AbortSignal.timeout(RPC_TIMEOUT_MS),
+      });
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'TimeoutError') {
+        throw new OdooClientError(`Odoo RPC timed out after 30s: ${url}`);
+      }
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        throw new OdooClientError(`Odoo RPC aborted: ${url}`);
+      }
+      throw err;
+    }
 
     if (!res.ok) {
       throw new OdooClientError(`HTTP ${res.status}: ${res.statusText}`);
