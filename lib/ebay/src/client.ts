@@ -1,6 +1,6 @@
 import { loadEbayConfig } from './config.js';
 import { EbayApiError, EbayAuthError } from './errors.js';
-import { parseXml, xmlEscape, xmlGet, xmlFindAll } from './xml.js';
+import { parseXml, xmlEscape, xmlGet, xmlFindAll, safeCdata } from './xml.js';
 import type {
   EbayConfig, ListingData, AddItemResult, VerifyAddItemResult,
   ReviseItemResult, TestConnectionResult, CategorySpecificsResult,
@@ -206,7 +206,7 @@ export class EbayClient {
         <Currency>${currency}</Currency>
         <Location>${location}</Location>
         <PostalCode>${postalCode}</PostalCode>
-        <Description><![CDATA[${data.description_html}]]></Description>
+        <Description><![CDATA[${safeCdata(data.description_html)}]]></Description>
         <DispatchTimeMax>${data.dispatch_days ?? 3}</DispatchTimeMax>
         <PictureDetails>${picturesXml}
         </PictureDetails>
@@ -321,7 +321,7 @@ ${this.buildPolicyXml(data, currency)}
     let updateFields = '';
     if (updates.title) updateFields += `\n        <Title>${xmlEscape(updates.title)}</Title>`;
     if (updates.price != null) updateFields += `\n        <StartPrice currencyID="USD">${updates.price.toFixed(2)}</StartPrice>`;
-    if (updates.description_html) updateFields += `\n        <Description><![CDATA[${updates.description_html}]]></Description>`;
+    if (updates.description_html) updateFields += `\n        <Description><![CDATA[${safeCdata(updates.description_html)}]]></Description>`;
 
     const xml = `<?xml version="1.0" encoding="utf-8"?>
 <ReviseItemRequest xmlns="${EBAY_NS}">
