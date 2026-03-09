@@ -13,3 +13,8 @@ config/upload-api.key
 *.db-shm
 *.db-wal
 .env
+
+# Agent artifacts
+.agents/
+.claude/
+CLAUDE.md
