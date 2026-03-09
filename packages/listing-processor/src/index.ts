@@ -9,7 +9,6 @@ import fastifyCookie from '@fastify/cookie';
 import { Eta } from 'eta';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { randomBytes } from 'node:crypto';
 
 import { OdooClient, type OdooProduct, DEFAULT_PRODUCT_FIELDS } from '@ld/odoo-sdk';
 import {
@@ -49,7 +48,10 @@ const eta = new Eta({
   cache: process.env.NODE_ENV === 'production',
 });
 
-const COOKIE_SECRET = process.env.COOKIE_SECRET ?? randomBytes(32).toString('hex');
+const COOKIE_SECRET = process.env.COOKIE_SECRET;
+if (!COOKIE_SECRET) {
+  throw new Error('COOKIE_SECRET environment variable must be set. Generate one with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"');
+}
 
 await app.register(cors);
 await app.register(fastifyFormbody);
