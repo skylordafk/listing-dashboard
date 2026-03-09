@@ -9,8 +9,6 @@ import {
   DEFAULT_CONDITION_NOTES, DEFAULT_SHIPPING_INFO, DEFAULT_RETURNS_POLICY,
   type AiConfig,
 } from './config.js';
-import type { OdooImage } from './field-mapper.js';
-
 // ── Category Context ────────────────────────────────────────────────
 
 export interface CategoryContext {

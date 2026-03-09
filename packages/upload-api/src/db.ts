@@ -106,11 +106,20 @@ export function getAllListings(db: Database.Database): ListingRow[] {
   ).all() as ListingRow[];
 }
 
+interface ListingStatusExtra {
+  ebay_item_id?: string;
+  ebay_url?: string;
+  uploaded_at?: string;
+  listing_data?: string;
+  title?: string;
+  error_message?: string;
+}
+
 export function updateListingStatus(
   db: Database.Database,
   id: number,
   status: string,
-  extra?: Record<string, unknown>,
+  extra?: ListingStatusExtra,
 ): void {
   const sets = ['status = ?', 'error_message = ?'];
   const params: unknown[] = [status, extra?.error_message ?? null];
