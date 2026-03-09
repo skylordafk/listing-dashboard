@@ -53,7 +53,9 @@ if (!COOKIE_SECRET) {
   throw new Error('COOKIE_SECRET environment variable must be set. Generate one with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"');
 }
 
-await app.register(cors);
+await app.register(cors, {
+  origin: process.env.CORS_ORIGIN ?? false,
+});
 await app.register(fastifyFormbody);
 await app.register(fastifyCookie, { secret: COOKIE_SECRET });
 await app.register(fastifyStatic, {
