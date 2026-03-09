@@ -8,6 +8,7 @@ import {
   DEFAULT_CONDITION_NOTES, DEFAULT_SHIPPING_INFO, DEFAULT_RETURNS_POLICY,
   type AiConfig,
 } from './config.js';
+import type { OdooImage } from './field-mapper.js';
 
 // ── Category Context ────────────────────────────────────────────────
 
@@ -549,12 +550,6 @@ interface MarketContext {
   price_band?: string;
   keywords?: string[];
   example_titles?: string[];
-}
-
-export interface OdooImage {
-  datas: string;
-  mimetype?: string;
-  name?: string;
 }
 
 // ── Main Class ──────────────────────────────────────────────────────
