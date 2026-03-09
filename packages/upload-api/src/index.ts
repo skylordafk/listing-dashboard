@@ -30,7 +30,7 @@ await app.register(cors, {
 app.addHook('onRequest', async (req, reply) => {
   if (req.url === '/health') return;
   if (req.headers['x-api-key'] !== apiKey) {
-    reply.code(401).send({ error: 'Invalid or missing API key' });
+    return reply.code(401).send({ error: 'Invalid or missing API key' });
   }
 });
 
