@@ -642,7 +642,9 @@ export class ListingAIGenerator {
     return parseTitleResponse(content, count, marketContext);
   }
 
-  async analyzeCondition(images: OdooImage[]): Promise<string> {
+  async analyzeCondition(images: OdooImage[]): Promise<{ notes: string; error?: string }> {
+    if (!images.length) return { notes: '' };
+
     const model = this.config.model ?? 'gpt-4o-mini';
     const client = await this.getClient();
 
@@ -674,10 +676,10 @@ export class ListingAIGenerator {
         temperature: 0.3,
       });
       const result = response.choices[0]?.message?.content;
-      return result?.trim() ?? '';
+      return { notes: result?.trim() ?? '' };
     } catch (err) {
-      console.warn('Vision condition assessment failed:', err);
-      return '';
+      console.warn('[ai-generator] Vision condition assessment failed:', err instanceof Error ? err.message : String(err));
+      return { notes: '', error: err instanceof Error ? err.message : String(err) };
     }
   }
 
@@ -716,9 +718,12 @@ export class ListingAIGenerator {
 
     const hasImages = opts.images?.some(img => img.datas);
     if (hasImages && opts.images) {
-      const conditionText = await this.analyzeCondition(opts.images);
-      if (conditionText) {
-        userPrompt += `\n\nCONDITION ASSESSMENT (from photos):\n${conditionText}\n\nIncorporate this condition assessment into the Product Overview section.`;
+      const conditionResult = await this.analyzeCondition(opts.images);
+      if (conditionResult.error) {
+        console.warn('[ai-generator] generateDescription: Vision condition assessment error:', conditionResult.error);
+      }
+      if (conditionResult.notes) {
+        userPrompt += `\n\nCONDITION ASSESSMENT (from photos):\n${conditionResult.notes}\n\nIncorporate this condition assessment into the Product Overview section.`;
       }
     }
 
@@ -807,12 +812,10 @@ function parseTitleResponse(content: string, count: number, marketContext?: Mark
       validated.sort((a, b) => scoreTitleCandidate(b, marketContext) - scoreTitleCandidate(a, marketContext));
     }
     return validated.slice(0, count);
-  } catch {
-    const fallback = content.split('\n').filter(l => l.trim()).slice(0, count);
-    if (marketContext) {
-      fallback.sort((a, b) => scoreTitleCandidate(b, marketContext) - scoreTitleCandidate(a, marketContext));
-    }
-    return fallback;
+  } catch (err) {
+    console.warn('[ai-generator] parseTitleResponse: Failed to parse JSON from OpenAI response:', err instanceof Error ? err.message : String(err));
+    console.warn('[ai-generator] Raw content length:', content?.length ?? 0);
+    return [];
   }
 }
 
