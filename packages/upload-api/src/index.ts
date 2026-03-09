@@ -90,8 +90,18 @@ async function uploadListing(listing: ListingRow): Promise<{ body: Record<string
   try {
     const listingData = JSON.parse(listing.listing_data) as ListingData;
 
-    // Step 1: Mark uploading
-    updateListingStatus(db, listingId, 'uploading');
+    // Step 1: Atomically claim the listing (prevents duplicate eBay uploads from
+    // concurrent batch requests both seeing the same 'approved' listing)
+    const claim = db.prepare(
+      "UPDATE listings SET status = 'uploading' WHERE id = ? AND status IN ('approved', 'failed')"
+    ).run(listingId);
+    if (claim.changes === 0) {
+      // Another request already claimed this listing
+      return {
+        body: { status: 'skipped', listing_id: listingId, reason: 'Listing was claimed by another request' },
+        code: 200,
+      };
+    }
 
     // Step 2: Fetch images from Odoo
     const odoo = OdooClient.fromEnv();
