@@ -812,12 +812,10 @@ function parseTitleResponse(content: string, count: number, marketContext?: Mark
       validated.sort((a, b) => scoreTitleCandidate(b, marketContext) - scoreTitleCandidate(a, marketContext));
     }
     return validated.slice(0, count);
-  } catch {
-    const fallback = content.split('\n').filter(l => l.trim()).slice(0, count);
-    if (marketContext) {
-      fallback.sort((a, b) => scoreTitleCandidate(b, marketContext) - scoreTitleCandidate(a, marketContext));
-    }
-    return fallback;
+  } catch (err) {
+    console.warn('[ai-generator] parseTitleResponse: Failed to parse JSON from OpenAI response:', err instanceof Error ? err.message : String(err));
+    console.warn('[ai-generator] Raw content length:', content?.length ?? 0);
+    return [];
   }
 }
 
