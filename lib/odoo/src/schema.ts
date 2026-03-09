@@ -118,6 +118,16 @@ export interface OdooProduct {
   x_ebay_days_to_sell: number;
 }
 
+// ── Image Attachment ───────────────────────────────────────────────────
+
+/** A product image attachment as returned by Odoo. */
+export interface OdooImage {
+  id: number;
+  datas: string;   // base64-encoded
+  name: string;
+  mimetype: string;
+}
+
 // ── Field Lists ────────────────────────────────────────────────────────
 
 /** All custom (x_) field names. */

@@ -10,6 +10,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@ld/odoo-sdk": "workspace:*",
     "fast-xml-parser": "^5.2.3"
   },
   "devDependencies": {

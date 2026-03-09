@@ -3,7 +3,8 @@
 
 import { cleanProcessorString } from './value-matcher.js';
 
-import type { OdooProduct } from '@ld/odoo-sdk';
+import type { OdooProduct, OdooImage } from '@ld/odoo-sdk';
+import { xmlEscape } from '@ld/ebay-client';
 import type { ListingData, ItemSpecific } from './normalizer.js';
 
 // ── Constants ────────────────────────────────────────────────────────
@@ -173,32 +174,24 @@ function buildItemSpecifics(product: OdooProduct): ItemSpecific[] {
 
 // ── Fallback Description ────────────────────────────────────────────
 
-function esc(text: string): string {
-  return String(text ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
 function buildDescription(product: OdooProduct): string {
-  const brand = esc(getField(product, 'x_brand') ?? 'N/A');
-  const model = esc(getField(product, 'x_model_name') ?? 'N/A');
-  const series = esc(getField(product, 'x_series') ?? '');
-  const processor = esc(getField(product, 'x_processor') ?? 'N/A');
-  const speed = esc(getField(product, 'x_processor_speed') ?? '');
+  const brand = xmlEscape(getField(product, 'x_brand') ?? 'N/A');
+  const model = xmlEscape(getField(product, 'x_model_name') ?? 'N/A');
+  const series = xmlEscape(getField(product, 'x_series') ?? '');
+  const processor = xmlEscape(getField(product, 'x_processor') ?? 'N/A');
+  const speed = xmlEscape(getField(product, 'x_processor_speed') ?? '');
   const ram = getField(product, 'x_ram_size');
   const ramDisplay = ram ? (RAM_DISPLAY[ram] ?? ram.toUpperCase()) : 'N/A';
-  const storage = esc(getField(product, 'x_storage_capacity') ?? 'N/A');
+  const storage = xmlEscape(getField(product, 'x_storage_capacity') ?? 'N/A');
   const storageType = getField(product, 'x_storage_type');
   const storageTypeDisplay = storageType ? (STORAGE_TYPE_DISPLAY[storageType] ?? '') : '';
-  const gpu = esc(getField(product, 'x_gpu') ?? 'N/A');
+  const gpu = xmlEscape(getField(product, 'x_gpu') ?? 'N/A');
   const graphicsType = getField(product, 'x_graphics_type');
   const graphicsDisplay = graphicsType ? (GRAPHICS_TYPE_DISPLAY[graphicsType] ?? '') : '';
-  const screen = esc(getField(product, 'x_screen_size') ?? 'N/A');
-  const resolution = esc(getField(product, 'x_max_resolution') ?? 'N/A');
-  const connectivity = esc(getField(product, 'x_connectivity') ?? 'N/A');
-  const features = esc(getField(product, 'x_features') ?? 'N/A');
+  const screen = xmlEscape(getField(product, 'x_screen_size') ?? 'N/A');
+  const resolution = xmlEscape(getField(product, 'x_max_resolution') ?? 'N/A');
+  const connectivity = xmlEscape(getField(product, 'x_connectivity') ?? 'N/A');
+  const features = xmlEscape(getField(product, 'x_features') ?? 'N/A');
 
   const titleLine = `${brand} ${series} ${model}`.trim();
 
@@ -243,13 +236,6 @@ function calculatePrice(product: OdooProduct): number {
 }
 
 // ── Main Export ──────────────────────────────────────────────────────
-
-export interface OdooImage {
-  id: number;
-  datas: string;
-  name: string;
-  mimetype: string;
-}
 
 export function productToListing(product: OdooProduct, images?: OdooImage[]): ListingData {
   const title = buildTitle(product);

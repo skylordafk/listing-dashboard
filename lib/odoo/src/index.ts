@@ -26,6 +26,7 @@ export {
 } from './schema.js';
 export type {
   OdooProduct,
+  OdooImage,
   ProductType,
   RamSize,
   StorageType,

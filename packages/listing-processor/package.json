@@ -11,6 +11,7 @@
     "dev": "node --watch dist/index.js"
   },
   "dependencies": {
+    "@ld/ebay-client": "workspace:*",
     "@ld/odoo-sdk": "workspace:*",
     "fastify": "^5.3.3",
     "@fastify/cors": "^11.0.0",
