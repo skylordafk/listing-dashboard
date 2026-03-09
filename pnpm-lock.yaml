@@ -8,6 +8,19 @@ importers:
 
   .: {}
 
+  lib/db:
+    dependencies:
+      better-sqlite3:
+        specifier: ^11.9.1
+        version: 11.10.0
+    devDependencies:
+      '@types/better-sqlite3':
+        specifier: ^7.6.13
+        version: 7.6.13
+      '@types/node':
+        specifier: ^25.2.3
+        version: 25.3.5
+
   lib/ebay:
     dependencies:
       '@ld/odoo-sdk':
@@ -41,6 +54,9 @@ importers:
       '@fastify/static':
         specifier: ^8.1.0
         version: 8.3.0
+      '@ld/db':
+        specifier: workspace:*
+        version: link:../../lib/db
       '@ld/ebay-client':
         specifier: workspace:*
         version: link:../../lib/ebay
@@ -75,6 +91,9 @@ importers:
       '@fastify/cors':
         specifier: ^11.0.0
         version: 11.2.0
+      '@ld/db':
+        specifier: workspace:*
+        version: link:../../lib/db
       '@ld/ebay-client':
         specifier: workspace:*
         version: link:../../lib/ebay
