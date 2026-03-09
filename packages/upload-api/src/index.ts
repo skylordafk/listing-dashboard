@@ -1,6 +1,6 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
-import { OdooClient } from '@ld/odoo-sdk';
+import { OdooClient, getAttachmentsWithData } from '@ld/odoo-sdk';
 import { EbayClient, EbayTaxonomyClient, EbayApiError, EbayAuthError, loadEbayConfig } from '@ld/ebay-client';
 import type { ListingData } from '@ld/ebay-client';
 import { loadApiKey } from './helpers.js';
@@ -107,15 +107,7 @@ async function uploadListing(listing: ListingRow): Promise<{ body: Record<string
 
     // Step 2: Fetch images from Odoo
     const odoo = OdooClient.fromEnv();
-    const attachments = await odoo.searchRead<{ id: number; datas: string; name: string }>(
-      'ir.attachment',
-      [
-        ['res_model', '=', 'product.template'],
-        ['res_id', '=', productId],
-        ['mimetype', 'like', 'image/'],
-      ],
-      { fields: ['datas', 'name'] },
-    );
+    const attachments = await getAttachmentsWithData(odoo, productId);
 
     // Step 3: Upload images to eBay
     const ebay = new EbayClient();
@@ -198,15 +190,7 @@ async function verifyListing(listing: ListingRow): Promise<{ body: Record<string
   try {
     const listingData = JSON.parse(listing.listing_data) as ListingData;
     const odoo = OdooClient.fromEnv();
-    const attachments = await odoo.searchRead<{ id: number; datas: string; name: string }>(
-      'ir.attachment',
-      [
-        ['res_model', '=', 'product.template'],
-        ['res_id', '=', productId],
-        ['mimetype', 'like', 'image/'],
-      ],
-      { fields: ['datas', 'name'] },
-    );
+    const attachments = await getAttachmentsWithData(odoo, productId);
 
     const ebay = new EbayClient();
     const imageUrls: string[] = [];

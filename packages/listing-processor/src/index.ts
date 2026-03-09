@@ -11,7 +11,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import DOMPurify from 'isomorphic-dompurify';
-import { OdooClient, type OdooProduct, DEFAULT_PRODUCT_FIELDS } from '@ld/odoo-sdk';
+import { OdooClient, type OdooProduct, DEFAULT_PRODUCT_FIELDS, getAttachmentsWithData, batchCountAttachments } from '@ld/odoo-sdk';
 import {
   getDb, getListingByProductId, getListingById, getListingsByStatus,
   getStatusCounts, upsertListing, updateListingFields, getListingProductIds,
@@ -123,37 +123,14 @@ function getOdoo(): OdooClient | null {
 }
 
 async function getProductImages(odoo: OdooClient, productId: number): Promise<OdooImage[]> {
-  return odoo.searchRead<OdooImage>(
-    'ir.attachment',
-    [
-      ['res_model', '=', 'product.template'],
-      ['res_id', '=', productId],
-      ['mimetype', 'like', 'image/'],
-    ],
-    { fields: ['id', 'datas', 'name', 'mimetype'] as any },
-  );
+  return getAttachmentsWithData(odoo, productId) as Promise<OdooImage[]>;
 }
 
 async function getProductImageCounts(
   odoo: OdooClient,
   productIds: number[],
 ): Promise<Map<number, number>> {
-  const result = new Map<number, number>();
-  if (productIds.length === 0) return result;
-  // Batch: fetch all image attachments for these product IDs
-  const attachments = await odoo.searchRead<{ res_id: number }>(
-    'ir.attachment',
-    [
-      ['res_model', '=', 'product.template'],
-      ['res_id', 'in', productIds],
-      ['mimetype', 'like', 'image/'],
-    ],
-    { fields: ['res_id'] as any },
-  );
-  for (const att of attachments) {
-    result.set(att.res_id, (result.get(att.res_id) ?? 0) + 1);
-  }
-  return result;
+  return batchCountAttachments(odoo, productIds);
 }
 
 // ── Listing Helpers ─────────────────────────────────────────────────
