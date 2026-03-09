@@ -11,10 +11,16 @@ let _db: Database.Database | undefined;
 /** Get or create the shared SQLite connection. */
 export function getDb(): Database.Database {
   if (!_db) {
-    _db = new Database(DB_PATH, { timeout: 30_000 });
-    _db.pragma('journal_mode = WAL');
-    applySchema(_db);
-    applyUploadApiSchema(_db);
+    const db = new Database(DB_PATH, { timeout: 30_000 });
+    try {
+      db.pragma('journal_mode = WAL');
+      applySchema(db);
+      applyUploadApiSchema(db);
+    } catch (err) {
+      db.close();
+      throw err;
+    }
+    _db = db; // only assigned after successful init
   }
   return _db;
 }
