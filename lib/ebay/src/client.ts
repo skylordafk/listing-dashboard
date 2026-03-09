@@ -161,10 +161,16 @@ export class EbayClient {
   }
 
   async uploadPictures(images: OdooImage[]): Promise<string[]> {
+    const results = await Promise.allSettled(
+      images.map(img => this.uploadPicture(img.datas, img.name ?? 'photo.jpg'))
+    );
     const urls: string[] = [];
-    for (const img of images) {
-      const url = await this.uploadPicture(img.datas, img.name ?? 'photo.jpg');
-      urls.push(url);
+    for (const result of results) {
+      if (result.status === 'fulfilled') {
+        urls.push(result.value);
+      } else {
+        console.warn('Image upload failed:', result.reason);
+      }
     }
     return urls;
   }

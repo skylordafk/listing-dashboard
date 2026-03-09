@@ -62,14 +62,23 @@ export class EbayTaxonomyClient {
     if (!appId || !certId) throw new EbayAuthError('appId and certId required for Taxonomy API');
 
     const b64 = Buffer.from(`${appId}:${certId}`).toString('base64');
-    const res = await fetch(TOKEN_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Basic ${b64}`,
-      },
-      body: 'grant_type=client_credentials&scope=https%3A%2F%2Fapi.ebay.com%2Foauth%2Fapi_scope',
-    });
+    let res: Response;
+    try {
+      res = await fetch(TOKEN_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `Basic ${b64}`,
+        },
+        body: 'grant_type=client_credentials&scope=https%3A%2F%2Fapi.ebay.com%2Foauth%2Fapi_scope',
+        signal: AbortSignal.timeout(30_000),
+      });
+    } catch (err) {
+      if (err instanceof Error && err.name === 'TimeoutError') {
+        throw new EbayApiError('eBay taxonomy token request timed out after 30s');
+      }
+      throw err;
+    }
 
     if (!res.ok) {
       const text = await res.text();
@@ -86,9 +95,18 @@ export class EbayTaxonomyClient {
 
   private async get(url: string): Promise<unknown> {
     const token = await this.getToken();
-    const res = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` },
+        signal: AbortSignal.timeout(30_000),
+      });
+    } catch (err) {
+      if (err instanceof Error && err.name === 'TimeoutError') {
+        throw new EbayApiError('eBay taxonomy request timed out after 30s');
+      }
+      throw err;
+    }
     if (res.status === 401 || res.status === 403) {
       _cachedToken = null;
       throw new EbayAuthError(`Taxonomy API auth failed (${res.status})`);

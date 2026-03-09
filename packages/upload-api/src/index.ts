@@ -88,11 +88,22 @@ function ebayErrorResponse(err: unknown, listingId: number, action: string) {
 async function uploadListing(listing: ListingRow): Promise<{ body: Record<string, unknown>; code: number }> {
   const listingId = listing.id;
   const productId = listing.odoo_product_id;
-  const listingData = JSON.parse(listing.listing_data) as ListingData;
 
   try {
-    // Step 1: Mark uploading
-    updateListingStatus(db, listingId, 'uploading');
+    const listingData = JSON.parse(listing.listing_data) as ListingData;
+
+    // Step 1: Atomically claim the listing (prevents duplicate eBay uploads from
+    // concurrent batch requests both seeing the same 'approved' listing)
+    const claim = db.prepare(
+      "UPDATE listings SET status = 'uploading' WHERE id = ? AND status IN ('approved', 'failed')"
+    ).run(listingId);
+    if (claim.changes === 0) {
+      // Another request already claimed this listing
+      return {
+        body: { status: 'skipped', listing_id: listingId, reason: 'Listing was claimed by another request' },
+        code: 200,
+      };
+    }
 
     // Step 2: Fetch images from Odoo
     const odoo = OdooClient.fromEnv();
@@ -117,6 +128,15 @@ async function uploadListing(listing: ListingRow): Promise<{ body: Record<string
       } catch (err) {
         logUpload(db, listingId, 'upload_picture', 'failure', (err as Error).message);
       }
+    }
+
+    if (imageUrls.length === 0 && attachments.length > 0) {
+      const errMsg = 'All image uploads failed — no images available for listing';
+      updateListingStatus(db, listingId, 'failed', { error_message: errMsg });
+      return {
+        body: { status: 'error', listing_id: listingId, error: errMsg },
+        code: 502,
+      };
     }
 
     // Step 4-5: Create eBay listing
@@ -174,9 +194,9 @@ async function uploadListing(listing: ListingRow): Promise<{ body: Record<string
 async function verifyListing(listing: ListingRow): Promise<{ body: Record<string, unknown>; code: number }> {
   const listingId = listing.id;
   const productId = listing.odoo_product_id;
-  const listingData = JSON.parse(listing.listing_data) as ListingData;
 
   try {
+    const listingData = JSON.parse(listing.listing_data) as ListingData;
     const odoo = OdooClient.fromEnv();
     const attachments = await odoo.searchRead<{ id: number; datas: string; name: string }>(
       'ir.attachment',
@@ -197,6 +217,17 @@ async function verifyListing(listing: ListingRow): Promise<{ body: Record<string
       } catch (err) {
         console.warn('Failed to upload image:', (err as Error).message);
       }
+    }
+
+    if (imageUrls.length === 0 && attachments.length > 0) {
+      return {
+        body: {
+          status: 'error',
+          listing_id: listingId,
+          error: 'All image uploads failed — no images available for listing',
+        },
+        code: 502,
+      };
     }
 
     const result = await ebay.verifyAddItem(listingData, imageUrls);
@@ -351,7 +382,12 @@ app.post<{ Params: { listingId: string }; Body: { title?: string; price?: number
       return reply.code(400).send({ error: 'No eBay item ID on this listing' });
     }
 
-    const listingData = JSON.parse(listing.listing_data) as Record<string, unknown>;
+    let listingData: Record<string, unknown>;
+    try {
+      listingData = JSON.parse(listing.listing_data) as Record<string, unknown>;
+    } catch (err) {
+      return reply.code(400).send({ status: 'error', error: `Invalid listing_data JSON: ${(err as Error).message}` });
+    }
     const body = req.body ?? {};
 
     const updates: Record<string, unknown> = {};
