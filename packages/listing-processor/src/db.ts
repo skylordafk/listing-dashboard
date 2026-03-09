@@ -1,9 +1,10 @@
 // SQLite database queries for the listing processor.
-// Shares ~/ebay-listings.db with @spv/upload-api.
+// Shares ~/ebay-listings.db with @ld/upload-api.
 
 import Database from 'better-sqlite3';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
+import { applySchema } from '@ld/db';
 
 const DB_PATH = process.env.DB_PATH ?? join(homedir(), 'ebay-listings.db');
 
@@ -14,39 +15,9 @@ export function getDb(): Database.Database {
   if (!_db) {
     _db = new Database(DB_PATH, { timeout: 30_000 });
     _db.pragma('journal_mode = WAL');
-    initDb(_db);
+    applySchema(_db);
   }
   return _db;
-}
-
-function initDb(db: Database.Database): void {
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS listings (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      odoo_product_id INTEGER NOT NULL UNIQUE,
-      odoo_product_name TEXT,
-      status TEXT NOT NULL DEFAULT 'draft',
-      listing_data TEXT NOT NULL,
-      title TEXT,
-      price REAL,
-      ebay_item_id TEXT,
-      ebay_url TEXT,
-      error_message TEXT,
-      notes TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      approved_at TIMESTAMP,
-      uploaded_at TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS upload_log (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      listing_id INTEGER NOT NULL REFERENCES listings(id),
-      action TEXT NOT NULL,
-      status TEXT,
-      error_details TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
 }
 
 // ── Types ───────────────────────────────────────────────────────────
