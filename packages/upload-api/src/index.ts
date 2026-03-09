@@ -21,7 +21,9 @@ const apiKey = loadApiKey();
 const db = getDb();
 const app = Fastify({ logger: true });
 
-await app.register(cors);
+await app.register(cors, {
+  origin: process.env.LISTING_PROCESSOR_ORIGIN ?? 'http://localhost:5050',
+});
 
 // ── Auth hook ───────────────────────────────────────────────────────
 
@@ -500,4 +502,4 @@ app.get<{ Params: { categoryId: string }; Querystring: { refresh?: string } }>(
 
 const address = await app.listen({ port: PORT, host: HOST });
 console.log(`\n📦 Upload API listening on ${address}`);
-console.log(`🔑 API Key: ${apiKey}\n`);
+console.log(`🔑 API key loaded (${apiKey.slice(0, 8)}...)\n`);
