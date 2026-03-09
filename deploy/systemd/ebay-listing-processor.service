@@ -1,0 +1,18 @@
+[Unit]
+Description=eBay Listing Processor (TypeScript)
+After=network.target
+
+[Service]
+Type=simple
+User=skyler
+WorkingDirectory=/home/skyler/listing-dashboard
+ExecStart=/usr/bin/node packages/listing-processor/dist/index.js
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production
+Environment=PORT=5050
+Environment=ODOO_API_KEY=__ODOO_API_KEY__
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+
+[Install]
+WantedBy=multi-user.target

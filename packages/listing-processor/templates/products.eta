@@ -1,0 +1,138 @@
+<% layout('./base', { title: `Products (${it.total}) — eBay Listings`, activeNav: it.activeNav, flashes: it.flashes }) %>
+
+<div class="page-header">
+    <h2>Products <span class="text-muted text-md">(<%= it.total %>)</span></h2>
+    <span class="text-sm text-muted">Odoo inventory &mdash; filter by scan + listing status</span>
+</div>
+
+<form method="get" class="products-controls">
+    <div class="form-group">
+        <label for="scan-filter">Scan Filter</label>
+        <select id="scan-filter" name="filter">
+            <option value="all" <%= it.scanFilter === 'all' ? 'selected' : '' %>>All (<%= it.countAll %>)</option>
+            <option value="scanned" <%= it.scanFilter === 'scanned' ? 'selected' : '' %>>Scanned (<%= it.countScanned %>)</option>
+            <option value="unscanned" <%= it.scanFilter === 'unscanned' ? 'selected' : '' %>>Unscanned (<%= it.countUnscanned %>)</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="listing-status-filter">Listing Status</label>
+        <select id="listing-status-filter" name="status">
+            <% for (const [statusKey, statusLabel] of it.listingFilterOptions) { %>
+            <option value="<%= statusKey %>" <%= it.listingFilter === statusKey ? 'selected' : '' %>>
+                <%= statusLabel %> (<%= statusKey !== 'all' ? (it.statusCounts[statusKey] ?? 0) : it.currentScanTotal %>)
+            </option>
+            <% } %>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="per-page">Items / Page</label>
+        <select id="per-page" name="per_page">
+            <% for (const option of it.perPageOptions) { %>
+            <option value="<%= option %>" <%= it.perPage === option ? 'selected' : '' %>><%= option %></option>
+            <% } %>
+        </select>
+    </div>
+    <div class="products-controls-actions">
+        <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+        <a href="/products" class="btn btn-secondary btn-sm">Reset</a>
+    </div>
+</form>
+
+<div class="filter-pills">
+    <% for (const [statusKey, statusLabel] of it.listingFilterOptions) { %>
+    <a href="/products?filter=<%= it.scanFilter %>&status=<%= statusKey %>&per_page=<%= it.perPage %>&page=1"
+       class="filter-pill<%= it.listingFilter === statusKey ? ' active' : '' %>">
+        <%= statusLabel %>
+        <span class="filter-pill-count">
+            <%= statusKey !== 'all' ? (it.statusCounts[statusKey] ?? 0) : it.currentScanTotal %>
+        </span>
+    </a>
+    <% } %>
+</div>
+
+<% if (it.error) { %>
+<div class="panel" style="border-color: var(--red);">
+    <span class="text-red font-600">Error:</span> <%= it.error %>
+</div>
+<% } else if (it.products.length === 0) { %>
+<div class="panel text-muted">
+    No products found for this scan/status filter combination.
+</div>
+<% } else { %>
+<div class="overflow-auto">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th><th>Ref</th><th>Name</th><th>Brand / Model</th><th>Processor</th>
+                <th>RAM</th><th>Storage</th><th>Screen</th><th>Cost</th>
+                <th>Price</th><th>Img</th><th>Status</th><th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <% for (const p of it.products) { %>
+            <tr<%= !p.has_specs ? ' style="opacity: 0.55;"' : (p.image_count === 0 ? ' class="warn-row"' : '') %>>
+                <td><%= p.id %></td>
+                <td class="text-xs"><%= p.default_code || '-' %></td>
+                <td class="text-xs"><%= p.name || p.default_code || '-' %></td>
+                <td>
+                    <strong><%= p.x_brand || '?' %></strong><% if (p.x_series) { %> <span class="text-muted"><%= p.x_series %></span><% } %>
+                    <% if (p.x_model_name) { %><br><span class="text-xs text-muted"><%= p.x_model_name %></span><% } %>
+                </td>
+                <td class="text-xs">
+                    <% if (p.x_processor) { %>
+                    <%= p.x_processor %>
+                    <% if (p.x_processor_speed) { %><br><span class="text-muted"><%= p.x_processor_speed %></span><% } %>
+                    <% } else { %>
+                    <span class="text-orange" title="Needs boot USB scan">&mdash; not scanned</span>
+                    <% } %>
+                </td>
+                <td><%= p.x_ram_size || '-' %></td>
+                <td class="text-xs">
+                    <%= p.x_storage_capacity || '-' %>
+                    <% if (p.x_storage_type) { %><br><span class="text-muted"><%= p.x_storage_type %></span><% } %>
+                </td>
+                <td class="text-xs">
+                    <%= p.x_screen_size || '-' %>
+                    <% if (p.x_max_resolution) { %><br><span class="text-muted"><%= p.x_max_resolution %></span><% } %>
+                </td>
+                <td class="num cost"><% if (p.standard_price) { %>$<%= Math.round(p.standard_price) %><% } else { %>-<% } %></td>
+                <td class="num price"><% if (p.list_price) { %>$<%= Math.round(p.list_price) %><% } else { %>-<% } %></td>
+                <td class="text-center">
+                    <% if (p.image_count > 0) { %>
+                    <span class="text-green"><%= p.image_count %></span>
+                    <% } else { %>
+                    <span class="text-orange font-bold" title="No photos">!</span>
+                    <% } %>
+                </td>
+                <td>
+                    <% if (p.listing_status) { %>
+                    <span class="badge badge-<%= p.listing_status %>"><%= p.listing_status %></span>
+                    <% } else if (p.has_specs) { %>
+                    <span class="badge badge-new">new</span>
+                    <% } else { %>
+                    <span class="badge" style="background: var(--surface-alt); color: var(--text-3); border: 1px solid var(--border-muted);">needs scan</span>
+                    <% } %>
+                </td>
+                <td><a href="/products/<%= p.id %>/preview" class="btn btn-primary btn-sm">Preview</a></td>
+            </tr>
+            <% } %>
+        </tbody>
+    </table>
+</div>
+
+<div class="stats-row mt-3">
+    <div class="stat-box"><div class="stat-val-sm text-blue"><%= it.countAll %></div><div class="stat-label">Total</div></div>
+    <div class="stat-box"><div class="stat-val-sm text-green"><%= it.countScanned %></div><div class="stat-label">Scanned</div></div>
+    <div class="stat-box"><div class="stat-val-sm text-orange"><%= it.countUnscanned %></div><div class="stat-label">Unscanned</div></div>
+    <div class="stat-box"><div class="stat-val-sm" style="color: var(--purple);"><%= it.listedCount %></div><div class="stat-label">Listed (this page)</div></div>
+    <div class="stat-box"><div class="stat-val-sm text-green"><%= it.products.filter(p => p.image_count > 0).length %></div><div class="stat-label">With Photos</div></div>
+</div>
+
+<% if (it.totalPages > 1) { %>
+<div class="pagination">
+    <% for (let p = 1; p <= it.totalPages; p++) { %>
+    <a href="/products?page=<%= p %>&filter=<%= it.scanFilter %>&status=<%= it.listingFilter %>&per_page=<%= it.perPage %>" <%= p === it.page ? 'class="active"' : '' %>><%= p %></a>
+    <% } %>
+</div>
+<% } %>
+<% } %>

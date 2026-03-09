@@ -1,0 +1,15 @@
+node_modules/
+dist/
+*.js.map
+*.d.ts.map
+
+# Config secrets (copy from *.example files)
+config/ebay-config.json
+config/listing-ai-config.json
+config/upload-api.key
+
+# Runtime
+*.db
+*.db-shm
+*.db-wal
+.env

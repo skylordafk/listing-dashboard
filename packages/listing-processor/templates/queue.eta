@@ -1,0 +1,65 @@
+<% layout('./base', { title: 'Queue — eBay Listings', activeNav: it.activeNav, flashes: it.flashes }) %>
+
+<div class="page-header">
+    <h2>Listing Queue</h2>
+</div>
+
+<div class="filter-tabs">
+    <a class="filter-tab <%= it.statusFilter === 'approved' ? 'active' : '' %>" href="/queue?status=approved">Approved (<%= it.statusCounts.approved %>)</a>
+    <a class="filter-tab <%= it.statusFilter === 'uploaded' ? 'active' : '' %>" href="/queue?status=uploaded">Uploaded (<%= it.statusCounts.uploaded %>)</a>
+    <a class="filter-tab <%= it.statusFilter === 'failed' ? 'active' : '' %>" href="/queue?status=failed">Failed (<%= it.statusCounts.failed %>)</a>
+    <a class="filter-tab <%= it.statusFilter === 'draft' ? 'active' : '' %>" href="/queue?status=draft">Drafts (<%= it.statusCounts.draft %>)</a>
+    <a class="filter-tab <%= it.statusFilter === 'rejected' ? 'active' : '' %>" href="/queue?status=rejected">Rejected (<%= it.statusCounts.rejected %>)</a>
+    <a class="filter-tab <%= it.statusFilter === 'all' ? 'active' : '' %>" href="/queue?status=all">All</a>
+</div>
+
+<% if (it.listings.length === 0) { %>
+<div class="empty-state">
+    <div class="text-muted">No listings with status "<%= it.statusFilter %>"</div>
+</div>
+<% } else { %>
+<div class="overflow-auto">
+    <table>
+        <thead>
+            <tr><th>#</th><th>Product</th><th>Title</th><th>Price</th><th>Status</th><th>eBay ID</th><th>Created</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+            <% for (const l of it.listings) { %>
+            <tr<%= l.status === 'failed' ? ' class="err-row"' : '' %>>
+                <td><%= l.id %></td>
+                <td><%= l.odoo_product_name || l.odoo_product_id %></td>
+                <td class="truncate"><%= l.title || 'No title' %></td>
+                <td class="num price">$<%= (l.price || 0).toFixed(2) %></td>
+                <td><span class="badge badge-<%= l.status %>"><%= l.status %></span></td>
+                <td>
+                    <% if (l.ebay_item_id) { %>
+                    <a href="https://www.ebay.com/itm/<%= l.ebay_item_id %>" target="_blank" class="text-xs"><%= l.ebay_item_id %></a>
+                    <% } else { %>-<% } %>
+                </td>
+                <td class="text-xs text-muted"><%= l.created_at ? l.created_at.slice(0, 10) : '' %></td>
+                <td class="nowrap">
+                    <a href="/products/<%= l.odoo_product_id %>/preview" class="btn btn-secondary btn-sm">View</a>
+                    <% if (['approved', 'failed'].includes(l.status)) { %>
+                    <form action="/listing/<%= l.id %>/verify" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-warning btn-sm" title="eBay dry run">Test</button>
+                    </form>
+                    <form action="/listing/<%= l.id %>/upload" method="post" style="display:inline;" onsubmit="return confirm('Upload to eBay? This creates a LIVE listing.');">
+                        <button type="submit" class="btn btn-primary btn-sm" title="Create live listing">Upload</button>
+                    </form>
+                    <% } %>
+                    <% if (l.status === 'uploaded' && l.ebay_item_id) { %>
+                    <a href="https://www.ebay.com/itm/<%= l.ebay_item_id %>" target="_blank" class="btn btn-info btn-sm">eBay</a>
+                    <% } %>
+                </td>
+            </tr>
+            <% if (l.error_message) { %>
+            <tr class="err-row">
+                <td></td>
+                <td colspan="7" class="text-xs text-red" style="border-top: none;">Error: <%= l.error_message %></td>
+            </tr>
+            <% } %>
+            <% } %>
+        </tbody>
+    </table>
+</div>
+<% } %>

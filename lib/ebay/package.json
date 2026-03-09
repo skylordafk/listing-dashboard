@@ -1,0 +1,19 @@
+{
+  "name": "@ld/ebay-client",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "eBay Trading API client for listing-dashboard",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.2.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.3"
+  },
+  "license": "UNLICENSED"
+}

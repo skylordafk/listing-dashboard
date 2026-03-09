@@ -1,0 +1,10 @@
+{
+  "openai_api_key": "sk-YOUR_OPENAI_KEY",
+  "model": "gpt-4o-mini",
+  "title_system_prompt": "(uses built-in default if omitted)",
+  "description_system_prompt": "(uses built-in default if omitted)",
+  "condition_notes": "Item may show signs of normal use...",
+  "shipping_info": "Ships within 1-2 business days...",
+  "returns_policy": "30-day returns accepted...",
+  "use_structured_output": true
+}

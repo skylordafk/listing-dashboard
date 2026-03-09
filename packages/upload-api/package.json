@@ -1,0 +1,25 @@
+{
+  "name": "@ld/upload-api",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "eBay Upload API — upload approved listings to eBay Trading API",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "start": "node dist/index.js",
+    "dev": "node --watch dist/index.js"
+  },
+  "dependencies": {
+    "@ld/odoo-sdk": "workspace:*",
+    "@ld/ebay-client": "workspace:*",
+    "fastify": "^5.3.3",
+    "@fastify/cors": "^11.0.0",
+    "better-sqlite3": "^11.9.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^25.2.3"
+  },
+  "license": "UNLICENSED"
+}

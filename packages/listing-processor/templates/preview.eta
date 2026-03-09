@@ -1,0 +1,834 @@
+<% layout('./base', {
+  title: `${it.product.x_brand || ''} ${it.product.x_model_name || ''} — Preview`.trim(),
+  activeNav: it.activeNav,
+  flashes: it.flashes,
+  head: '<style>.preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}@media(max-width:960px){.preview-grid{grid-template-columns:1fr}}.img-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}.img-grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px;border:1px solid var(--border-muted);cursor:pointer}.img-grid img:hover{border-color:var(--blue)}.spec-table td:first-child{font-weight:600;white-space:nowrap;width:35%;color:var(--text-2)}.title-option{padding:8px 10px;border:1px solid var(--border-muted);border-radius:4px;cursor:pointer;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;transition:border-color .15s}.title-option:hover{border-color:var(--blue)}.title-option .chars{font-size:12px;color:var(--text-3);white-space:nowrap;margin-left:12px}.desc-preview{border:1px solid var(--border-muted);border-radius:4px;padding:12px;max-height:500px;overflow-y:auto;background:#fff}.desc-edit textarea{width:100%;min-height:300px;font-family:monospace;font-size:12px}.action-bar{display:flex;gap:8px;flex-wrap:wrap;padding:16px 0;border-top:1px solid var(--border-muted);margin-top:16px}.lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1000;cursor:pointer;align-items:center;justify-content:center}.lightbox.open{display:flex}.lightbox img{max-width:90vw;max-height:90vh;object-fit:contain}.cat-suggestion{padding:6px 10px;border:1px solid var(--border-muted);cursor:pointer;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;font-size:12px;transition:border-color .15s}.cat-suggestion:hover{border-color:var(--blue);background:var(--surface-alt)}.cat-suggestion.selected{border-color:var(--green);background:var(--green-subtle)}.cat-breadcrumb{color:var(--text-3);font-size:11px}.btn-loading{opacity:.7;cursor:wait;pointer-events:none}@keyframes pulse-bg{0%,100%{opacity:.7}50%{opacity:.4}}.btn-loading{animation:pulse-bg 1.2s ease-in-out infinite}.spec-row{display:grid;grid-template-columns:180px 1fr 28px;gap:6px;align-items:center;padding:4px 0;border-bottom:1px solid var(--border-muted)}.spec-row:last-child{border-bottom:none}.spec-row label{font-size:12px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.spec-row label .req{color:var(--red);font-weight:700}.spec-row label .rec{color:var(--blue);font-size:10px;margin-left:2px}.spec-row input,.spec-row select{font-size:12px;padding:3px 6px;border:1px solid var(--border-muted);border-radius:3px;width:100%}.spec-row input:focus,.spec-row select:focus{border-color:var(--blue);outline:none}.spec-row .spec-status{font-size:14px;text-align:center}.spec-section-toggle{font-size:11px;color:var(--blue);cursor:pointer;border:none;background:none;padding:4px 0;text-decoration:underline}.specs-header-info{font-size:11px;color:var(--text-3)}</style>'
+}) %>
+
+<%
+  const p = it.product;
+  const l = it.listing;
+  const brand = p.x_brand || '?';
+  const model = p.x_model_name || '';
+  const series = p.x_series || '';
+  const headline = [brand, series, model].filter(Boolean).join(' ');
+  const categoryId = it.categoryId || '177';
+  const isUploaded = it.existing && it.existing.status === 'uploaded';
+  const ebayItemId = it.existing ? it.existing.ebay_item_id : null;
+%>
+
+<div class="page-header">
+    <h2><%= headline %></h2>
+    <div class="flex flex-gap" style="align-items:center;">
+        <% if (it.existing) { %>
+        <span class="badge badge-<%= it.existing.status %>"><%= it.existing.status %></span>
+        <% } %>
+        <% if (ebayItemId) { %>
+        <a href="https://www.ebay.com/itm/<%= ebayItemId %>" target="_blank" class="btn btn-info btn-sm">View on eBay</a>
+        <% } %>
+        <a href="/products" class="btn btn-secondary btn-sm">← Products</a>
+    </div>
+</div>
+
+<% if (it.qualityWarnings && it.qualityWarnings.length > 0) { %>
+<div class="flash flash-warning" style="margin-bottom:12px;">
+    <strong>Quality:</strong>
+    <% for (const w of it.qualityWarnings) { %><div>⚠ <%= w %></div><% } %>
+</div>
+<% } %>
+
+<div class="preview-grid">
+    <!-- LEFT COLUMN: Product Info + Images -->
+    <div>
+        <div class="panel">
+            <div class="panel-header">Product Specs (Odoo #<%= p.id %>)</div>
+            <table class="spec-table">
+                <%
+                const specRows = [
+                    ['Brand', p.x_brand], ['Series', p.x_series], ['Model', p.x_model_name],
+                    ['Processor', p.x_processor], ['Speed', p.x_processor_speed],
+                    ['RAM', p.x_ram_size], ['Storage', [p.x_storage_capacity, p.x_storage_type].filter(Boolean).join(' ')],
+                    ['GPU', p.x_gpu], ['Graphics', p.x_graphics_type],
+                    ['Screen', p.x_screen_size], ['Resolution', p.x_max_resolution],
+                    ['OS', p.x_operating_system], ['Condition', p.x_condition],
+                    ['Color', p.x_color], ['Connectivity', p.x_connectivity],
+                    ['Features', p.x_features],
+                ];
+                %>
+                <% for (const [label, val] of specRows) { %>
+                <% if (val && val !== false) { %>
+                <tr><td><%= label %></td><td><%= val %></td></tr>
+                <% } %>
+                <% } %>
+                <%
+                const testFields = [
+                    ['Display', p.x_test_display], ['Keyboard', p.x_test_keyboard],
+                    ['Touchpad', p.x_test_touchpad], ['Speakers', p.x_test_speakers],
+                    ['Webcam', p.x_test_webcam], ['WiFi', p.x_test_wifi],
+                    ['Bluetooth', p.x_test_bluetooth], ['Ports', p.x_test_ports],
+                    ['Battery', p.x_test_battery],
+                ];
+                const passedTests = testFields.filter(([_, v]) => v && v !== false);
+                %>
+                <% if (passedTests.length > 0) { %>
+                <tr><td>Tests</td><td class="text-green"><%= passedTests.map(t => t[0]).join(', ') %></td></tr>
+                <% } %>
+                <% if (p.x_battery_health) { %><tr><td>Battery</td><td><%= p.x_battery_health %><% if (p.x_battery_cycles) { %> (<%= p.x_battery_cycles %> cycles)<% } %></td></tr><% } %>
+                <% if (p.x_cosmetic_notes) { %><tr><td>Cosmetic</td><td class="text-xs"><%= p.x_cosmetic_notes %></td></tr><% } %>
+                <% if (p.x_functional_notes) { %><tr><td>Functional</td><td class="text-xs"><%= p.x_functional_notes %></td></tr><% } %>
+                <tr><td>Cost</td><td>$<%= p.standard_price ? p.standard_price.toFixed(2) : '0.00' %></td></tr>
+                <tr><td>List Price</td><td>$<%= p.list_price ? p.list_price.toFixed(2) : '0.00' %></td></tr>
+            </table>
+        </div>
+
+        <% if (it.images && it.images.length > 0) { %>
+        <div class="panel">
+            <div class="panel-header">Photos (<%= it.images.length %>)</div>
+            <div class="img-grid">
+                <% for (const img of it.images) { %>
+                <img src="data:<%= img.mimetype || 'image/jpeg' %>;base64,<%= img.datas %>"
+                     alt="<%= img.name || 'Product photo' %>"
+                     onclick="openLightbox(this.src)">
+                <% } %>
+            </div>
+        </div>
+        <% } else { %>
+        <div class="panel"><div class="text-muted">No photos uploaded yet.</div></div>
+        <% } %>
+
+        <!-- Item Specifics (eBay) -->
+        <div class="panel">
+            <div class="panel-header flex" style="justify-content:space-between;align-items:center;">
+                Item Specifics
+                <span id="specs-status" class="specs-header-info"></span>
+            </div>
+            <div id="specs-container">
+                <div class="text-muted text-sm" style="padding:4px 0;">Loading...</div>
+            </div>
+            <div id="specs-optional-wrapper" style="display:none;margin-top:6px;">
+                <button type="button" class="spec-section-toggle" onclick="toggleOptionalSpecs()">▸ Show optional fields</button>
+                <div id="specs-optional" style="display:none;"></div>
+            </div>
+            <div id="specs-extra" style="margin-top:6px;"></div>
+        </div>
+    </div>
+
+    <!-- RIGHT COLUMN: Listing Editor -->
+    <div>
+        <form id="listing-form" method="post">
+            <!-- Category -->
+            <div class="panel">
+                <div class="panel-header flex" style="justify-content:space-between;align-items:center;">
+                    Category
+                    <button type="button" class="btn btn-secondary btn-sm" id="suggest-cat-btn" onclick="suggestCategories()">
+                        <i class="bi bi-search"></i> Suggest
+                    </button>
+                </div>
+                <div class="flex flex-gap" style="align-items:center;">
+                    <input type="text" name="category_id" id="category-id-input" value="<%= categoryId %>"
+                           class="form-control" style="width:80px;text-align:center;font-weight:600;">
+                    <span id="category-name" class="text-sm text-muted"><%= categoryId === '177' ? 'Laptops & Netbooks' : categoryId === '179' ? 'PC Desktops & All-In-Ones' : 'Cat ' + categoryId %></span>
+                </div>
+                <div id="cat-suggestions" style="margin-top:8px;display:none;"></div>
+            </div>
+            <!-- Title -->
+            <div class="panel">
+                <div class="panel-header flex" style="justify-content:space-between;align-items:center;">
+                    Title
+                    <button type="button" class="btn btn-primary btn-sm" id="gen-titles-btn" onclick="generateTitles()">
+                        <i class="bi bi-stars"></i> Generate Titles
+                    </button>
+                </div>
+                <input type="text" name="title" id="title-input" value="<%= l.title || '' %>"
+                       class="form-control" maxlength="80" style="width:100%;font-size:15px;font-weight:600;">
+                <div class="flex" style="justify-content:space-between;margin-top:4px;">
+                    <span class="text-xs text-muted" id="title-chars"><%= (l.title || '').length %>/80</span>
+                </div>
+                <div id="title-options" style="margin-top:8px;display:none;"></div>
+            </div>
+
+            <!-- Price + Condition -->
+            <div class="panel">
+                <div class="panel-header">Pricing &amp; Condition</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div class="form-group">
+                        <label for="price">Price ($)</label>
+                        <input type="number" step="0.01" name="price" id="price" value="<%= l.price || 0 %>" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="condition_id">Condition</label>
+                        <select name="condition_id" id="condition_id" class="form-control">
+                            <option value="1000" <%= l.condition_id == 1000 ? 'selected' : '' %>>New</option>
+                            <option value="2000" <%= l.condition_id == 2000 ? 'selected' : '' %>>Certified Refurbished</option>
+                            <option value="2500" <%= l.condition_id == 2500 ? 'selected' : '' %>>Seller Refurbished</option>
+                            <option value="3000" <%= l.condition_id == 3000 ? 'selected' : '' %>>Used</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top:8px;">
+                    <label for="condition_description">Condition Description</label>
+                    <textarea name="condition_description" id="condition_description" rows="3" class="form-control"><%= l.condition_description || '' %></textarea>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="panel">
+                <div class="panel-header flex" style="justify-content:space-between;align-items:center;">
+                    Description
+                    <div class="flex flex-gap">
+                        <button type="button" class="btn btn-primary btn-sm" id="gen-desc-btn" onclick="generateDescription()">
+                            <i class="bi bi-stars"></i> Generate
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="toggleDescEdit()">Edit HTML</button>
+                    </div>
+                </div>
+                <div id="desc-preview" class="desc-preview">
+                    <%~ l.description_html || '<span class="text-muted">No description yet. Click Generate.</span>' %>
+                </div>
+                <div id="desc-edit" class="desc-edit" style="display:none;">
+                    <textarea name="description_html" id="desc-html"><%= l.description_html || '' %></textarea>
+                </div>
+            </div>
+
+            <div id="specs-hidden-fields"></div>
+
+            <!-- Actions -->
+            <div class="action-bar">
+                <% if (isUploaded) { %>
+                <button type="submit" formaction="/products/<%= p.id %>/save-changes" class="btn btn-primary">Save Changes</button>
+                <button type="submit" formaction="/products/<%= p.id %>/revise-ebay" class="btn btn-warning"
+                        onclick="return validateBeforeSubmit('revise');">
+                    Revise on eBay
+                </button>
+                <% } else { %>
+                <button type="submit" formaction="/products/<%= p.id %>/approve" class="btn btn-primary"
+                        onclick="return validateBeforeSubmit('approve');">
+                    <i class="bi bi-check-lg"></i> Approve
+                </button>
+                <button type="submit" formaction="/products/<%= p.id %>/edit" class="btn btn-secondary">Save Draft</button>
+                <% } %>
+                <button type="button" class="btn btn-danger" onclick="showRejectModal()">Reject</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div id="reject-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:900;align-items:center;justify-content:center;">
+    <div style="background:var(--surface);border-radius:8px;padding:24px;max-width:420px;width:90%;">
+        <h3 style="margin:0 0 12px;">Reject Listing</h3>
+        <form method="post" action="/products/<%= p.id %>/reject">
+            <div class="form-group">
+                <label for="reject-notes">Notes (optional)</label>
+                <textarea name="notes" id="reject-notes" rows="3" class="form-control"></textarea>
+            </div>
+            <div class="flex flex-gap" style="margin-top:12px;">
+                <button type="submit" class="btn btn-danger">Reject</button>
+                <button type="button" class="btn btn-secondary" onclick="hideRejectModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="this.classList.remove('open')">
+    <img id="lightbox-img" src="" alt="Full size">
+</div>
+
+<script>
+const productId = <%= p.id %>;
+
+// ── Smart Value Matching (compact client-side port) ──────────────────
+const NAME_ALIASES = {
+  'storage capacity': ['hard drive capacity', 'hdd capacity', 'ssd capacity'],
+  'hard drive capacity': ['storage capacity', 'hdd capacity'],
+  'ssd capacity': ['storage capacity'],
+  'ram size': ['ram', 'memory'],
+  'ram': ['ram size', 'memory'],
+  'memory': ['ram size', 'ram'],
+  'processor': ['cpu', 'processor model', 'processor type'],
+  'cpu': ['processor'],
+  'gpu': ['graphics', 'graphics card', 'video card'],
+  'graphics': ['gpu'],
+  'screen size': ['screen', 'display size'],
+  'maximum resolution': ['resolution', 'display resolution'],
+  'operating system': ['os'],
+};
+
+function findSpecByAlias(specMap, aspectName) {
+  const key = aspectName.toLowerCase();
+  if (specMap[key]) return specMap[key];
+  const aliases = NAME_ALIASES[key];
+  if (aliases) {
+    for (const a of aliases) {
+      if (specMap[a]) return specMap[a];
+    }
+  }
+  return undefined;
+}
+
+function smartMatchValue(raw, allowed, aspectName) {
+  if (!raw || !allowed || allowed.length === 0) return null;
+  const r = raw.trim();
+  if (!r) return null;
+  const rLow = r.toLowerCase();
+
+  // 1. Exact case-insensitive
+  for (const v of allowed) {
+    if (v.toLowerCase() === rLow) return v;
+  }
+
+  // 2. Normalized (strip (R), (TM), etc)
+  const norm = s => s.replace(/\(R\)/gi,'').replace(/\(TM\)/gi,'').replace(/[®™]/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+  const rNorm = norm(r);
+  for (const v of allowed) {
+    if (norm(v) === rNorm) return v;
+  }
+
+  // 3. Strip parenthetical info
+  const stripP = s => s.replace(/\s*\([^)]*\)\s*/g,' ').trim().toLowerCase();
+  const rStrip = stripP(r);
+  for (const v of allowed) {
+    if (stripP(v) === rStrip) return v;
+    if (stripP(v) === rLow) return v;
+    if (v.toLowerCase() === rStrip) return v;
+  }
+
+  // 4. Numeric+unit (RAM, Storage, Screen Size)
+  const numUnit = s => { const m = s.match(/(\d+(?:\.\d+)?)\s*(gb|tb|mb|ghz|mhz|in)/i); return m ? {n:parseFloat(m[1]),u:m[2].toLowerCase()} : null; };
+  const rNum = numUnit(r);
+  if (rNum) {
+    for (const v of allowed) {
+      const vNum = numUnit(v);
+      if (vNum && vNum.n === rNum.n && vNum.u === rNum.u) return v;
+    }
+  }
+
+  // 5. Processor model match
+  if (/processor|cpu/i.test(aspectName || '') || /\b(i[3579]-|Ryzen|Core|Celeron)/i.test(r)) {
+    const mModel = r.match(/\b(i[3579]-\w+)/i);
+    if (mModel) {
+      const model = mModel[1].toLowerCase();
+      for (const v of allowed) {
+        if (v.toLowerCase().includes(model)) return v;
+      }
+    }
+    // Clean processor and try
+    const cleaned = r.replace(/\(R\)/gi,'').replace(/\(TM\)/gi,'').replace(/@\s*[\d.]+\s*[GM]Hz/i,'').replace(/\s+(Processor|CPU)$/i,'').replace(/\s+/g,' ').trim().toLowerCase();
+    for (const v of allowed) {
+      if (norm(v) === cleaned) return v;
+    }
+  }
+
+  // 6. Token overlap (threshold 0.5)
+  const tokenize = s => norm(s).split(/[\s,;|/]+/).map(t => t.replace(/[^a-z0-9.-]/g,'')).filter(t => t.length > 0);
+  let best = null, bestScore = 0;
+  const rToks = new Set(tokenize(r));
+  if (rToks.size > 0) {
+    for (const v of allowed) {
+      const vToks = new Set(tokenize(v));
+      let inter = 0;
+      for (const t of rToks) { if (vToks.has(t)) inter++; }
+      const union = new Set([...rToks, ...vToks]).size;
+      const score = inter / union;
+      if (score > bestScore && score >= 0.5) {
+        bestScore = score;
+        best = v;
+      }
+    }
+    if (best) return best;
+  }
+
+  // 7. Contains match
+  for (const v of allowed) {
+    const vLow = v.toLowerCase();
+    if ((rLow.includes(vLow) || vLow.includes(rLow)) && Math.min(rLow.length, vLow.length) >= 3) return v;
+  }
+
+  return null;
+}
+
+// Existing item specifics from server
+const existingSpecs = <%~ JSON.stringify((l.item_specifics || []).map(s => ({Name: s.Name || s.name, Value: s.Value || s.value}))) %>;
+const currentCategoryId = <%~ JSON.stringify(categoryId) %>;
+let loadedAspects = [];
+let specEdits = {}; // track user edits by aspect name
+
+// Load aspects for a category and render the specs panel
+async function loadAspects(catId) {
+    const container = document.getElementById('specs-container');
+    const statusEl = document.getElementById('specs-status');
+    statusEl.textContent = 'Loading aspects...';
+    container.innerHTML = '<div class="text-muted text-sm" style="padding:4px 0;"><i class="bi bi-hourglass-split"></i> Fetching eBay requirements...</div>';
+
+    try {
+        const resp = await fetch('/api/categories/' + catId + '/aspects');
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || 'Failed');
+        loadedAspects = data.aspects || [];
+        renderSpecsPanel(loadedAspects, existingSpecs);
+    } catch (err) {
+        container.innerHTML = '<div class="text-red text-sm">Failed to load aspects: ' + esc(err.message) + '</div>';
+        statusEl.textContent = '';
+        // Fall back to showing existing specs as editable
+        renderFallbackSpecs(existingSpecs);
+    }
+}
+
+function renderSpecsPanel(aspects, specs) {
+    const container = document.getElementById('specs-container');
+    const optWrapper = document.getElementById('specs-optional-wrapper');
+    const optContainer = document.getElementById('specs-optional');
+    const extraContainer = document.getElementById('specs-extra');
+    const statusEl = document.getElementById('specs-status');
+
+    // Build lookup from existing specs (handle multi-value: same name, multiple values)
+    const specMap = {};
+    for (const s of specs) {
+        const key = (s.Name || '').toLowerCase();
+        if (!specMap[key]) specMap[key] = [];
+        specMap[key].push(s.Value || '');
+    }
+
+    // Track which spec names are covered by aspects
+    const coveredNames = new Set();
+
+    const required = aspects.filter(a => a.required || a.usage === 'RECOMMENDED');
+    const optional = aspects.filter(a => !a.required && a.usage !== 'RECOMMENDED');
+
+    let filledCount = 0;
+    let requiredMissing = 0;
+
+    // Render required + recommended
+    container.innerHTML = '';
+    for (const aspect of required) {
+        const key = aspect.name.toLowerCase();
+        coveredNames.add(key);
+        // Use alias-based lookup (e.g., "Hard Drive Capacity" finds "Storage Capacity")
+        let values = findSpecByAlias(specMap, aspect.name) || (specEdits[key] ? [specEdits[key]] : []);
+        let value = values.join(', ');
+        // Smart-match the value against eBay's allowed values
+        if (value && aspect.values && aspect.values.length > 0) {
+            const matched = smartMatchValue(value, aspect.values, aspect.name);
+            if (matched) value = matched;
+        }
+        const row = makeSpecRow(aspect, value);
+        container.appendChild(row);
+        if (value) filledCount++;
+        else if (aspect.required) requiredMissing++;
+    }
+
+    // Render optional (hidden by default)
+    optContainer.innerHTML = '';
+    let hasOptional = false;
+    for (const aspect of optional) {
+        const key = aspect.name.toLowerCase();
+        coveredNames.add(key);
+        let values = findSpecByAlias(specMap, aspect.name) || (specEdits[key] ? [specEdits[key]] : []);
+        let value = values.join(', ');
+        if (value && aspect.values && aspect.values.length > 0) {
+            const matched = smartMatchValue(value, aspect.values, aspect.name);
+            if (matched) value = matched;
+        }
+        const row = makeSpecRow(aspect, value);
+        optContainer.appendChild(row);
+        if (value) filledCount++;
+        hasOptional = true;
+    }
+    optWrapper.style.display = hasOptional ? 'block' : 'none';
+
+    // Mark alias-covered names too
+    const allCoveredNames = new Set(coveredNames);
+    for (const cn of coveredNames) {
+        const aliases = NAME_ALIASES[cn];
+        if (aliases) aliases.forEach(a => allCoveredNames.add(a));
+    }
+
+    // Render extra specs not in aspects (custom/additional from auto-fill)
+    extraContainer.innerHTML = '';
+    const extraSpecs = [];
+    for (const s of specs) {
+        const key = (s.Name || '').toLowerCase();
+        if (!allCoveredNames.has(key) && !extraSpecs.some(e => e.toLowerCase() === key)) {
+            extraSpecs.push(s.Name);
+        }
+    }
+    if (extraSpecs.length > 0) {
+        const header = document.createElement('div');
+        header.className = 'text-xs text-muted';
+        header.style.padding = '4px 0';
+        header.textContent = 'Additional (auto-detected)';
+        extraContainer.appendChild(header);
+        for (const name of extraSpecs) {
+            const key = name.toLowerCase();
+            const values = specMap[key] || [];
+            const row = makeSpecRow({ name, required: false, usage: 'EXTRA', mode: 'FREE_TEXT', values: [] }, values.join(', '));
+            extraContainer.appendChild(row);
+            if (values.join(', ')) filledCount++;
+        }
+    }
+
+    const total = required.length + optional.length + extraSpecs.length;
+    let statusText = filledCount + '/' + total + ' filled';
+    if (requiredMissing > 0) statusText += ' · ' + requiredMissing + ' required missing';
+    statusEl.textContent = statusText;
+
+    serializeSpecsToHidden();
+}
+
+function makeSpecRow(aspect, value) {
+    const row = document.createElement('div');
+    row.className = 'spec-row';
+
+    // Label
+    const label = document.createElement('label');
+    label.title = aspect.name;
+    if (aspect.required) {
+        label.innerHTML = '<span class="req">*</span> ' + esc(aspect.name);
+    } else if (aspect.usage === 'RECOMMENDED') {
+        label.innerHTML = esc(aspect.name) + ' <span class="rec">rec</span>';
+    } else {
+        label.textContent = aspect.name;
+    }
+    row.appendChild(label);
+
+    // Input
+    const listId = 'dl-' + aspect.name.replace(/[^a-zA-Z0-9]/g, '_');
+    if (aspect.mode === 'SELECTION_ONLY' && aspect.values && aspect.values.length > 0) {
+        const sel = document.createElement('select');
+        sel.dataset.specName = aspect.name;
+        const emptyOpt = document.createElement('option');
+        emptyOpt.value = '';
+        emptyOpt.textContent = '— Select —';
+        sel.appendChild(emptyOpt);
+        for (const v of aspect.values) {
+            const opt = document.createElement('option');
+            opt.value = v;
+            opt.textContent = v;
+            if (v.toLowerCase() === value.toLowerCase()) opt.selected = true;
+            sel.appendChild(opt);
+        }
+        sel.addEventListener('change', () => { specEdits[aspect.name.toLowerCase()] = sel.value; serializeSpecsToHidden(); updateRowStatus(row, sel.value, aspect.required); });
+        row.appendChild(sel);
+    } else {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = value;
+        input.dataset.specName = aspect.name;
+        input.placeholder = aspect.required ? 'Required' : '';
+        if (aspect.values && aspect.values.length > 0 && aspect.values.length <= 500) {
+            input.setAttribute('list', listId);
+            const dl = document.createElement('datalist');
+            dl.id = listId;
+            for (const v of aspect.values.slice(0, 200)) {
+                const opt = document.createElement('option');
+                opt.value = v;
+                dl.appendChild(opt);
+            }
+            row.appendChild(dl);
+        }
+        input.addEventListener('input', () => { specEdits[aspect.name.toLowerCase()] = input.value; serializeSpecsToHidden(); updateRowStatus(row, input.value, aspect.required); });
+        row.appendChild(input);
+    }
+
+    // Status icon
+    const status = document.createElement('span');
+    status.className = 'spec-status';
+    if (value) {
+        status.textContent = '✅';
+    } else if (aspect.required) {
+        status.textContent = '⚠️';
+    } else {
+        status.textContent = '';
+    }
+    row.appendChild(status);
+
+    return row;
+}
+
+function renderFallbackSpecs(specs) {
+    const container = document.getElementById('specs-container');
+    container.innerHTML = '';
+    for (const s of specs) {
+        const row = makeSpecRow({ name: s.Name, required: false, usage: 'EXTRA', mode: 'FREE_TEXT', values: [] }, s.Value);
+        container.appendChild(row);
+    }
+    serializeSpecsToHidden();
+}
+
+function toggleOptionalSpecs() {
+    const el = document.getElementById('specs-optional');
+    const btn = el.previousElementSibling || el.parentElement.querySelector('.spec-section-toggle');
+    if (el.style.display === 'none') {
+        el.style.display = 'block';
+        btn.textContent = '▾ Hide optional fields';
+    } else {
+        el.style.display = 'none';
+        btn.textContent = '▸ Show optional fields';
+    }
+}
+
+
+function updateRowStatus(row, value, isRequired) {
+    const statusEl = row.querySelector('.spec-status');
+    if (!statusEl) return;
+    if (value && value.trim()) {
+        statusEl.textContent = '✅';
+    } else if (isRequired) {
+        statusEl.textContent = '⚠️';
+    } else {
+        statusEl.textContent = '';
+    }
+    // Update header count
+    updateSpecsCount();
+}
+
+function updateSpecsCount() {
+    const allRows = document.querySelectorAll('#specs-container .spec-row, #specs-optional .spec-row, #specs-extra .spec-row');
+    let filled = 0, total = allRows.length, reqMissing = 0;
+    for (const row of allRows) {
+        const input = row.querySelector('[data-spec-name]');
+        const val = input ? (input.value || '').trim() : '';
+        if (val) filled++;
+        else if (row.querySelector('.req')) reqMissing++;
+    }
+    const statusEl = document.getElementById('specs-status');
+    let txt = filled + '/' + total + ' filled';
+    if (reqMissing > 0) txt += ' · ' + reqMissing + ' required missing';
+    statusEl.textContent = txt;
+}
+
+function validateBeforeSubmit(action) {
+    const issues = [];
+
+    // Check title
+    const title = document.getElementById('title-input').value.trim();
+    if (!title) issues.push('Title is empty');
+    else if (title.length < 20) issues.push('Title is very short (' + title.length + ' chars)');
+
+    // Check price
+    const price = parseFloat(document.getElementById('price').value);
+    if (!price || price <= 0) issues.push('Price is missing or zero');
+
+    // Check required item specifics
+    const reqRows = document.querySelectorAll('#specs-container .spec-row');
+    const missingReq = [];
+    for (const row of reqRows) {
+        if (!row.querySelector('.req')) continue; // not required
+        const input = row.querySelector('[data-spec-name]');
+        if (!input || !input.value.trim()) {
+            missingReq.push(input ? input.dataset.specName : 'Unknown');
+        }
+    }
+    if (missingReq.length > 0) {
+        issues.push('Required item specifics missing: ' + missingReq.join(', '));
+    }
+
+    // Check low spec count
+    const allSpecInputs = document.querySelectorAll('[data-spec-name]');
+    let filledSpecs = 0;
+    for (const inp of allSpecInputs) {
+        if (inp.value && inp.value.trim()) filledSpecs++;
+    }
+    if (filledSpecs < 5) issues.push('Only ' + filledSpecs + ' item specifics filled (recommend 10+)');
+
+    if (issues.length === 0) return true;
+
+    const isHard = issues.some(i => i.startsWith('Required') || i === 'Title is empty' || i.startsWith('Price is'));
+    const msg = (isHard ? '⛔ Cannot ' + action + ':\n' : '⚠️ Warnings before ' + action + ':\n') +
+        issues.map(i => '  • ' + i).join('\n') +
+        (isHard ? '' : '\n\nProceed anyway?');
+
+    if (isHard) { alert(msg); return false; }
+    return confirm(msg);
+}
+function serializeSpecsToHidden() {
+    const hidden = document.getElementById('specs-hidden-fields');
+    hidden.innerHTML = '';
+    const inputs = document.querySelectorAll('#specs-container [data-spec-name], #specs-optional [data-spec-name], #specs-extra [data-spec-name]');
+    let idx = 0;
+    for (const input of inputs) {
+        const name = input.dataset.specName;
+        const rawValue = (input.value || '').trim();
+        if (!rawValue) continue;
+        // Split comma-separated values for multi-value fields
+        const values = rawValue.includes(',') ? rawValue.split(',').map(v => v.trim()).filter(Boolean) : [rawValue];
+        for (const val of values) {
+            const hn = document.createElement('input');
+            hn.type = 'hidden'; hn.name = 'spec_name_' + idx; hn.value = name;
+            const hv = document.createElement('input');
+            hv.type = 'hidden'; hv.name = 'spec_value_' + idx; hv.value = val;
+            hidden.appendChild(hn);
+            hidden.appendChild(hv);
+            idx++;
+        }
+    }
+    const hc = document.createElement('input');
+    hc.type = 'hidden'; hc.name = 'spec_count'; hc.value = String(idx);
+    hidden.appendChild(hc);
+}
+
+// Auto-load aspects on page load
+loadAspects(currentCategoryId);
+
+
+// Title char counter
+const titleInput = document.getElementById('title-input');
+const titleChars = document.getElementById('title-chars');
+titleInput.addEventListener('input', () => {
+    titleChars.textContent = titleInput.value.length + '/80';
+});
+
+// Generate titles
+async function generateTitles() {
+    const btn = document.getElementById('gen-titles-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Generating...';
+    const optionsDiv = document.getElementById('title-options');
+
+    try {
+        const resp = await fetch('/api/ai/generate-titles', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ product_id: productId, count: 5, category_id: document.getElementById('category-id-input').value }),
+        });
+        const data = await resp.json();
+        if (!resp.ok || !data.titles) throw new Error(data.error || 'Failed');
+
+        optionsDiv.innerHTML = '';
+        for (const title of data.titles) {
+            const div = document.createElement('div');
+            div.className = 'title-option';
+            div.innerHTML = `<span>${esc(title)}</span><span class="chars">${title.length}ch</span>`;
+            div.onclick = () => {
+                titleInput.value = title;
+                titleChars.textContent = title.length + '/80';
+                document.querySelectorAll('.title-option').forEach(el => el.style.borderColor = '');
+                div.style.borderColor = 'var(--blue)';
+            };
+            optionsDiv.appendChild(div);
+        }
+        optionsDiv.style.display = 'block';
+    } catch (err) {
+        optionsDiv.innerHTML = '<div class="text-red text-sm">Error: ' + esc(err.message) + '</div>';
+        optionsDiv.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-stars"></i> Generate Titles';
+    }
+}
+
+// Generate description
+async function generateDescription() {
+    const btn = document.getElementById('gen-desc-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Generating...';
+
+    try {
+        const resp = await fetch('/api/ai/generate-description', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ product_id: productId, category_id: document.getElementById('category-id-input').value }),
+        });
+        const data = await resp.json();
+        if (!resp.ok || !data.description_html) throw new Error(data.error || 'Failed');
+
+        document.getElementById('desc-preview').innerHTML = data.description_html;
+        document.getElementById('desc-html').value = data.description_html;
+    } catch (err) {
+        document.getElementById('desc-preview').innerHTML =
+            '<div class="text-red">Error: ' + esc(err.message) + '</div>';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-stars"></i> Generate';
+    }
+}
+
+// Toggle description edit
+let descEditVisible = false;
+function toggleDescEdit() {
+    descEditVisible = !descEditVisible;
+    document.getElementById('desc-edit').style.display = descEditVisible ? 'block' : 'none';
+    document.getElementById('desc-preview').style.display = descEditVisible ? 'none' : 'block';
+    if (!descEditVisible) {
+        // Sync back to preview
+        const html = document.getElementById('desc-html').value;
+        document.getElementById('desc-preview').innerHTML = html;
+    }
+}
+
+// When form submits, sync description HTML from whichever view is active
+document.getElementById('listing-form').addEventListener('submit', () => {
+    if (!descEditVisible) {
+        // Ensure the hidden textarea has the preview content
+        const descHtml = document.getElementById('desc-html');
+        if (!descHtml.value && document.getElementById('desc-preview').innerHTML) {
+            descHtml.value = document.getElementById('desc-preview').innerHTML;
+        }
+    }
+});
+
+// Reject modal
+function showRejectModal() { document.getElementById('reject-modal').style.display = 'flex'; }
+function hideRejectModal() { document.getElementById('reject-modal').style.display = 'none'; }
+
+// Lightbox
+function openLightbox(src) {
+    document.getElementById('lightbox-img').src = src;
+    document.getElementById('lightbox').classList.add('open');
+}
+
+
+// Category suggestions
+async function suggestCategories() {
+    const btn = document.getElementById('suggest-cat-btn');
+    btn.disabled = true;
+    btn.classList.add('btn-loading');
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Searching eBay...';
+    const sugDiv = document.getElementById('cat-suggestions');
+
+    // Build query from product specs
+    const specs = [<%~ JSON.stringify([p.x_brand, p.x_model_name, p.x_series, p.x_processor ? p.x_processor.split(' CPU')[0] : '', p.x_ram_size, p.name].filter(Boolean).join(' ')) %>];
+    const query = specs[0];
+
+    try {
+        const resp = await fetch('/api/categories/suggest?q=' + encodeURIComponent(query));
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || 'Failed');
+
+        const suggestions = data.suggestions || [];
+        if (suggestions.length === 0) {
+            sugDiv.innerHTML = '<div class="text-muted text-sm">No suggestions found.</div>';
+            sugDiv.style.display = 'block';
+            return;
+        }
+
+        sugDiv.innerHTML = '';
+        const currentCat = document.getElementById('category-id-input').value;
+        for (const s of suggestions.slice(0, 8)) {
+            const div = document.createElement('div');
+            div.className = 'cat-suggestion' + (s.categoryId === currentCat ? ' selected' : '');
+            div.innerHTML = '<div><strong>' + esc(s.categoryName) + '</strong> <span class="text-muted text-xs">#' + s.categoryId + '</span>' +
+                '<div class="cat-breadcrumb">' + esc(s.breadcrumb.join(' > ')) + '</div></div>';
+            div.onclick = () => {
+                document.getElementById('category-id-input').value = s.categoryId;
+                document.getElementById('category-name').textContent = s.categoryName;
+                document.querySelectorAll('.cat-suggestion').forEach(el => el.classList.remove('selected'));
+                div.classList.add('selected');
+                loadAspects(s.categoryId);
+            };
+            sugDiv.appendChild(div);
+        }
+        sugDiv.style.display = 'block';
+    } catch (err) {
+        sugDiv.innerHTML = '<div class="text-red text-sm">Error: ' + esc(err.message) + '</div>';
+        sugDiv.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        btn.classList.remove('btn-loading');
+        btn.innerHTML = '<i class="bi bi-search"></i> Suggest';
+    }
+}
+// Escape HTML for safe insertion
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+</script>

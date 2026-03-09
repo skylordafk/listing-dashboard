@@ -1,0 +1,150 @@
+<% layout('./base', { title: 'Settings — eBay Listings', activeNav: it.activeNav, flashes: it.flashes }) %>
+
+<div class="page-header">
+    <h2>Settings</h2>
+</div>
+
+<form method="post" action="/settings/save">
+    <div class="grid-2">
+        <!-- AI Configuration -->
+        <div class="panel">
+            <div class="panel-header">AI Configuration</div>
+
+            <div class="form-group">
+                <label for="openai_api_key">OpenAI API Key</label>
+                <div class="flex flex-gap" style="align-items:center;">
+                    <input type="password" name="openai_api_key" id="openai_api_key" class="form-control"
+                           placeholder="<%= it.apiKeyMasked %>">
+                    <span class="text-xs <%= it.isConfigured ? 'text-green' : 'text-red' %>">
+                        <%= it.isConfigured ? '✓ Configured' : '✗ Not set' %>
+                    </span>
+                </div>
+                <div class="text-xs text-muted">Leave blank to keep current key. Only enter to change.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="model">Model</label>
+                <select name="model" id="model" class="form-control">
+                    <% const models = ['gpt-4o-mini', 'gpt-4o', 'gpt-4.1-mini', 'gpt-4.1', 'gpt-4.1-nano']; %>
+                    <% for (const m of models) { %>
+                    <option value="<%= m %>" <%= it.config.model === m ? 'selected' : '' %>><%= m %></option>
+                    <% } %>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" name="use_structured_output" <%= it.config.use_structured_output !== false ? 'checked' : '' %>>
+                    Use Structured Output (JSON mode)
+                </label>
+            </div>
+
+            <div class="form-group" style="margin-top:12px;">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="testConnection()">
+                    <i class="bi bi-plug"></i> Test Connection
+                </button>
+                <span id="test-result" class="text-sm" style="margin-left:8px;"></span>
+            </div>
+        </div>
+
+        <!-- eBay Configuration -->
+        <div class="panel">
+            <div class="panel-header">eBay Configuration</div>
+
+            <div class="form-group">
+                <label for="postal_code">Postal Code</label>
+                <input type="text" name="postal_code" id="postal_code" value="<%= it.ebayConfig.postal_code || '' %>" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="location">Item Location</label>
+                <input type="text" name="location" id="location" value="<%= it.ebayConfig.location || '' %>" class="form-control">
+            </div>
+
+            <div class="panel-header" style="margin-top:16px;">Business Policies</div>
+
+            <div class="form-group">
+                <label for="payment_policy_id">Payment Policy ID</label>
+                <input type="text" name="payment_policy_id" id="payment_policy_id"
+                       value="<%= it.ebayConfig.business_policies?.payment_policy_id || '' %>" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="return_policy_id">Return Policy ID</label>
+                <input type="text" name="return_policy_id" id="return_policy_id"
+                       value="<%= it.ebayConfig.business_policies?.return_policy_id || '' %>" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="shipping_policy_id">Shipping Policy ID</label>
+                <input type="text" name="shipping_policy_id" id="shipping_policy_id"
+                       value="<%= it.ebayConfig.business_policies?.shipping_policy_id || '' %>" class="form-control">
+            </div>
+
+            <div class="form-group" style="margin-top:12px;">
+                <label for="default_condition_description">Default Condition Description</label>
+                <textarea name="default_condition_description" id="default_condition_description" rows="3" class="form-control"><%= it.ebayConfig.default_condition_description || '' %></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Listing Text Defaults -->
+    <div class="panel" style="margin-top:16px;">
+        <div class="panel-header">Listing Text Defaults</div>
+        <div class="grid-3">
+            <div class="form-group">
+                <label for="condition_notes">Condition Notes</label>
+                <textarea name="condition_notes" id="condition_notes" rows="4" class="form-control"><%= it.config.condition_notes || '' %></textarea>
+            </div>
+            <div class="form-group">
+                <label for="shipping_info">Shipping Info</label>
+                <textarea name="shipping_info" id="shipping_info" rows="4" class="form-control"><%= it.config.shipping_info || '' %></textarea>
+            </div>
+            <div class="form-group">
+                <label for="returns_policy">Returns Policy</label>
+                <textarea name="returns_policy" id="returns_policy" rows="4" class="form-control"><%= it.config.returns_policy || '' %></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Prompts -->
+    <div class="panel" style="margin-top:16px;">
+        <div class="panel-header">AI System Prompts</div>
+        <div class="form-group">
+            <label for="title_system_prompt">Title Generation Prompt</label>
+            <textarea name="title_system_prompt" id="title_system_prompt" rows="6" class="form-control" style="font-family:monospace;font-size:12px;"><%= it.config.title_system_prompt || '' %></textarea>
+        </div>
+        <div class="form-group">
+            <label for="description_system_prompt">Description Generation Prompt</label>
+            <textarea name="description_system_prompt" id="description_system_prompt" rows="8" class="form-control" style="font-family:monospace;font-size:12px;"><%= it.config.description_system_prompt || '' %></textarea>
+        </div>
+    </div>
+
+    <div style="margin-top:16px;">
+        <button type="submit" class="btn btn-primary">Save All Settings</button>
+    </div>
+</form>
+
+<script>
+async function testConnection() {
+    const result = document.getElementById('test-result');
+    result.textContent = 'Testing...';
+    result.className = 'text-sm text-muted';
+    try {
+        const resp = await fetch('/api/ai/test', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({}),
+        });
+        const data = await resp.json();
+        if (data.status === 'ok') {
+            result.textContent = '✓ ' + data.message;
+            result.className = 'text-sm text-green';
+        } else {
+            result.textContent = '✗ ' + (data.message || 'Failed');
+            result.className = 'text-sm text-red';
+        }
+    } catch (err) {
+        result.textContent = '✗ ' + err.message;
+        result.className = 'text-sm text-red';
+    }
+}
+</script>

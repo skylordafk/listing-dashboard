@@ -1,0 +1,19 @@
+{
+  "app_id": "YOUR_APP_ID",
+  "dev_id": "YOUR_DEV_ID",
+  "cert_id": "YOUR_CERT_ID",
+  "oauth_token": "YOUR_OAUTH_TOKEN",
+  "refresh_token": "YOUR_REFRESH_TOKEN",
+  "redirect_uri": "YOUR_REDIRECT_URI",
+  "api_url": "https://api.ebay.com/ws/api.dll",
+  "api_version": "1355",
+  "site_id": "0",
+  "postal_code": "68131",
+  "location": "United States",
+  "business_policies": {
+    "payment_policy_id": "",
+    "return_policy_id": "",
+    "shipping_policy_id": ""
+  },
+  "default_condition_description": ""
+}
