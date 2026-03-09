@@ -10,6 +10,7 @@ import { Eta } from 'eta';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import DOMPurify from 'isomorphic-dompurify';
 import { OdooClient, type OdooProduct, DEFAULT_PRODUCT_FIELDS } from '@ld/odoo-sdk';
 import {
   getDb, getListingByProductId, getListingById, getListingsByStatus,
@@ -193,6 +194,19 @@ function listingDataFromSavedOnly(
   data.description_html ??= '';
   data.item_specifics ??= [];
   return finalizeListingData(data);
+}
+
+// ── Description Sanitization ────────────────────────────────────────
+
+/** Sanitize description_html on a listing data object before template rendering. */
+function sanitizeListingHtml(listingData: ListingData): ListingData {
+  if (listingData.description_html) {
+    listingData = {
+      ...listingData,
+      description_html: DOMPurify.sanitize(listingData.description_html),
+    };
+  }
+  return listingData;
 }
 
 // ── Category Specifics Cache ────────────────────────────────────────
@@ -404,6 +418,7 @@ app.get<{ Params: { productId: string } }>('/products/:productId/preview', async
     const categoryId = String(listingData.category_id ?? EBAY_CATEGORY_LAPTOP);
     const specificOptions = await getCategorySpecificOptions(categoryId);
     listingData = finalizeListingData(listingData, specificOptions);
+    listingData = sanitizeListingHtml(listingData);
     const qualityWarnings = listingQualityWarnings(listingData);
 
     const allSpecificNames = new Set([...EBAY_177_ALLOWED_SPECIFICS, ...Object.keys(specificOptions)]);
