@@ -235,6 +235,7 @@
     <img id="lightbox-img" src="" alt="Full size">
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
 <script>
 const productId = <%= p.id %>;
 
@@ -733,7 +734,7 @@ async function generateDescription() {
         const data = await resp.json();
         if (!resp.ok || !data.description_html) throw new Error(data.error || 'Failed');
 
-        document.getElementById('desc-preview').innerHTML = data.description_html;
+        document.getElementById('desc-preview').innerHTML = DOMPurify.sanitize(data.description_html);
         document.getElementById('desc-html').value = data.description_html;
     } catch (err) {
         document.getElementById('desc-preview').innerHTML =
@@ -753,7 +754,7 @@ function toggleDescEdit() {
     if (!descEditVisible) {
         // Sync back to preview
         const html = document.getElementById('desc-html').value;
-        document.getElementById('desc-preview').innerHTML = html;
+        document.getElementById('desc-preview').innerHTML = DOMPurify.sanitize(html);
     }
 }
 

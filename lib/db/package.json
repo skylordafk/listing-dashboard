@@ -1,8 +1,8 @@
 {
-  "name": "@ld/ebay-client",
+  "name": "@ld/db",
   "version": "0.1.0",
   "type": "module",
-  "description": "eBay Trading API client for listing-dashboard",
+  "description": "Shared SQLite schema for listing-dashboard services",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -10,10 +10,10 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@ld/odoo-sdk": "workspace:*",
-    "fast-xml-parser": "^5.2.3"
+    "better-sqlite3": "^11.9.1"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^25.2.3"
   },
   "license": "UNLICENSED"

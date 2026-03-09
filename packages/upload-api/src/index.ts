@@ -30,7 +30,7 @@ await app.register(cors, {
 app.addHook('onRequest', async (req, reply) => {
   if (req.url === '/health') return;
   if (req.headers['x-api-key'] !== apiKey) {
-    reply.code(401).send({ error: 'Invalid or missing API key' });
+    return reply.code(401).send({ error: 'Invalid or missing API key' });
   }
 });
 
@@ -327,8 +327,19 @@ app.post<{ Params: { listingId: string } }>('/api/verify/:listingId', async (req
   return reply.code(code).send(body);
 });
 
+const reviseBodySchema = {
+  type: 'object',
+  properties: {
+    title:            { type: 'string', minLength: 1, maxLength: 80 },
+    price:            { type: 'number', minimum: 0.01, maximum: 999999 },
+    description_html: { type: 'string', maxLength: 500_000 },
+  },
+  additionalProperties: false,
+};
+
 app.post<{ Params: { listingId: string }; Body: { title?: string; price?: number; description_html?: string } }>(
   '/api/revise/:listingId',
+  { schema: { body: reviseBodySchema } },
   async (req, reply) => {
     const listingId = Number(req.params.listingId);
     const listing = getListingById(db, listingId);

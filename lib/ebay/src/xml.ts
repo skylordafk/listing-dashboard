@@ -45,6 +45,15 @@ export function xmlGet(obj: unknown, path: string): unknown {
 }
 
 /**
+ * Escape a string for safe use inside a CDATA section.
+ * The sequence `]]>` ends a CDATA section prematurely; split it across two
+ * adjacent CDATA sections so the content is preserved verbatim.
+ */
+export function safeCdata(html: string): string {
+  return html.replaceAll(']]>', ']]]]><![CDATA[>');
+}
+
+/**
  * Find all elements with a given key anywhere in the tree.
  * Returns flat array of matching values.
  */

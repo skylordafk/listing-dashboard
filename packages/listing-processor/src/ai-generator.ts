@@ -1,15 +1,14 @@
 // AI-powered listing title and description generator.
 // Port of ai_generator.py — OpenAI API with structured output + vision.
 
-import type { OdooProduct } from '@ld/odoo-sdk';
+import type { OdooProduct, OdooImage } from '@ld/odoo-sdk';
+import { xmlEscape } from '@ld/ebay-client';
 import {
   loadAiConfig, saveAiConfig,
   DEFAULT_TITLE_PROMPT, DEFAULT_DESCRIPTION_PROMPT,
   DEFAULT_CONDITION_NOTES, DEFAULT_SHIPPING_INFO, DEFAULT_RETURNS_POLICY,
   type AiConfig,
 } from './config.js';
-import type { OdooImage } from './field-mapper.js';
-
 // ── Category Context ────────────────────────────────────────────────
 
 export interface CategoryContext {
@@ -131,12 +130,6 @@ function sanitizeGeneratedDescription(html: string): string {
 
 function stripHtml(text: string): string {
   return (text ?? '').replace(/<[^>]+>/gi, ' ').trim();
-}
-
-function esc(text: string): string {
-  return String(text ?? '')
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 function isNonemptyValue(value: unknown): boolean {
@@ -439,9 +432,9 @@ function buildDescriptionFallback(
   returnsPolicy: string,
   highlights?: string[],
 ): string {
-  const brand = esc(String(getField(product, 'x_brand') ?? 'Laptop'));
-  const model = esc(String(getField(product, 'x_model_name') ?? ''));
-  const series = esc(String(getField(product, 'x_series') ?? ''));
+  const brand = xmlEscape(String(getField(product, 'x_brand') ?? 'Laptop'));
+  const model = xmlEscape(String(getField(product, 'x_model_name') ?? ''));
+  const series = xmlEscape(String(getField(product, 'x_series') ?? ''));
   const headline = [brand, series, model].filter(Boolean).join(' ') || 'Laptop';
 
   const glanceItems = highlights ?? formatAtAGlance(product);
@@ -452,24 +445,24 @@ function buildDescriptionFallback(
 
   const glanceHtml = glanceItems
     .filter(i => isNonemptyValue(i))
-    .map(i => `<li style="margin: 0 0 6px 0;">${esc(i)}</li>`)
+    .map(i => `<li style="margin: 0 0 6px 0;">${xmlEscape(i)}</li>`)
     .join('');
 
   const specHtml = specs.map(([k, v]) =>
-    `<tr><td style="padding: 8px 10px; border: 1px solid #d6e0ea; background: #f6f9fc; font-weight: 600; width: 34%;">${esc(k)}</td>` +
-    `<td style="padding: 8px 10px; border: 1px solid #d6e0ea;">${esc(v)}</td></tr>`
+    `<tr><td style="padding: 8px 10px; border: 1px solid #d6e0ea; background: #f6f9fc; font-weight: 600; width: 34%;">${xmlEscape(k)}</td>` +
+    `<td style="padding: 8px 10px; border: 1px solid #d6e0ea;">${xmlEscape(v)}</td></tr>`
   ).join('');
 
   const testHtml = tests.map(([k, v]) =>
-    `<tr><td style="padding: 7px 10px; border: 1px solid #d6e0ea; background: #f6f9fc; font-weight: 600; width: 34%;">${esc(k)}</td>` +
-    `<td style="padding: 7px 10px; border: 1px solid #d6e0ea;">${esc(v)}</td></tr>`
+    `<tr><td style="padding: 7px 10px; border: 1px solid #d6e0ea; background: #f6f9fc; font-weight: 600; width: 34%;">${xmlEscape(k)}</td>` +
+    `<td style="padding: 7px 10px; border: 1px solid #d6e0ea;">${xmlEscape(v)}</td></tr>`
   ).join('');
 
   let batteryBlock = '';
   if (isNonemptyValue(batteryHealth) || isNonemptyValue(batteryCycles)) {
     const parts: string[] = [];
-    if (isNonemptyValue(batteryHealth)) parts.push(`Health: ${esc(String(batteryHealth))}`);
-    if (isNonemptyValue(batteryCycles)) parts.push(`Cycles: ${esc(String(batteryCycles))}`);
+    if (isNonemptyValue(batteryHealth)) parts.push(`Health: ${xmlEscape(String(batteryHealth))}`);
+    if (isNonemptyValue(batteryCycles)) parts.push(`Cycles: ${xmlEscape(String(batteryCycles))}`);
     batteryBlock = `<div style="margin: 12px 0 0 0; padding: 12px; border: 1px solid #d6e0ea; background: #f6f9fc;">` +
       `<div style="font-weight: 700; color: #1f4e79; margin-bottom: 6px;">Battery</div>` +
       `<div style="color: #1f2933;">${parts.join(' | ')}</div></div>`;
@@ -499,15 +492,15 @@ function buildDescriptionFallback(
   ${batteryBlock}
   <div style="margin: 12px 0 0 0; padding: 12px; border: 1px solid #d6e0ea; background: #ffffff;">
     <div style="font-weight: 700; color: #1f4e79; margin-bottom: 6px;">Condition</div>
-    <div>${esc(conditionNotes)}</div>
+    <div>${xmlEscape(conditionNotes)}</div>
   </div>
   <div style="margin: 10px 0 0 0; padding: 12px; border: 1px solid #d6e0ea; background: #ffffff;">
     <div style="font-weight: 700; color: #1f4e79; margin-bottom: 6px;">Shipping</div>
-    <div>${esc(shippingInfo)}</div>
+    <div>${xmlEscape(shippingInfo)}</div>
   </div>
   <div style="margin: 10px 0 0 0; padding: 12px; border: 1px solid #d6e0ea; background: #ffffff;">
     <div style="font-weight: 700; color: #1f4e79; margin-bottom: 6px;">Returns</div>
-    <div>${esc(returnsPolicy)}</div>
+    <div>${xmlEscape(returnsPolicy)}</div>
   </div>
   <div style="margin: 12px 0 0 0; font-size: 12px; color: #52606d;">Thanks for viewing this listing.</div>
 </div>`;
@@ -642,7 +635,9 @@ export class ListingAIGenerator {
     return parseTitleResponse(content, count, marketContext);
   }
 
-  async analyzeCondition(images: OdooImage[]): Promise<string> {
+  async analyzeCondition(images: OdooImage[]): Promise<{ notes: string; error?: string }> {
+    if (!images.length) return { notes: '' };
+
     const model = this.config.model ?? 'gpt-4o-mini';
     const client = await this.getClient();
 
@@ -674,10 +669,10 @@ export class ListingAIGenerator {
         temperature: 0.3,
       });
       const result = response.choices[0]?.message?.content;
-      return result?.trim() ?? '';
+      return { notes: result?.trim() ?? '' };
     } catch (err) {
-      console.warn('Vision condition assessment failed:', err);
-      return '';
+      console.warn('[ai-generator] Vision condition assessment failed:', err instanceof Error ? err.message : String(err));
+      return { notes: '', error: err instanceof Error ? err.message : String(err) };
     }
   }
 
@@ -716,9 +711,12 @@ export class ListingAIGenerator {
 
     const hasImages = opts.images?.some(img => img.datas);
     if (hasImages && opts.images) {
-      const conditionText = await this.analyzeCondition(opts.images);
-      if (conditionText) {
-        userPrompt += `\n\nCONDITION ASSESSMENT (from photos):\n${conditionText}\n\nIncorporate this condition assessment into the Product Overview section.`;
+      const conditionResult = await this.analyzeCondition(opts.images);
+      if (conditionResult.error) {
+        console.warn('[ai-generator] generateDescription: Vision condition assessment error:', conditionResult.error);
+      }
+      if (conditionResult.notes) {
+        userPrompt += `\n\nCONDITION ASSESSMENT (from photos):\n${conditionResult.notes}\n\nIncorporate this condition assessment into the Product Overview section.`;
       }
     }
 
@@ -807,12 +805,10 @@ function parseTitleResponse(content: string, count: number, marketContext?: Mark
       validated.sort((a, b) => scoreTitleCandidate(b, marketContext) - scoreTitleCandidate(a, marketContext));
     }
     return validated.slice(0, count);
-  } catch {
-    const fallback = content.split('\n').filter(l => l.trim()).slice(0, count);
-    if (marketContext) {
-      fallback.sort((a, b) => scoreTitleCandidate(b, marketContext) - scoreTitleCandidate(a, marketContext));
-    }
-    return fallback;
+  } catch (err) {
+    console.warn('[ai-generator] parseTitleResponse: Failed to parse JSON from OpenAI response:', err instanceof Error ? err.message : String(err));
+    console.warn('[ai-generator] Raw content length:', content?.length ?? 0);
+    return [];
   }
 }
 

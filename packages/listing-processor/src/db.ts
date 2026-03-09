@@ -1,9 +1,10 @@
 // SQLite database queries for the listing processor.
-// Shares ~/ebay-listings.db with @spv/upload-api.
+// Shares ~/ebay-listings.db with @ld/upload-api.
 
 import Database from 'better-sqlite3';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
+import { applySchema } from '@ld/db';
 
 const DB_PATH = process.env.DB_PATH ?? join(homedir(), 'ebay-listings.db');
 
@@ -15,7 +16,7 @@ export function getDb(): Database.Database {
     const db = new Database(DB_PATH, { timeout: 30_000 });
     try {
       db.pragma('journal_mode = WAL');
-      initDb(db);
+      applySchema(db);
     } catch (err) {
       db.close();
       throw err;
@@ -23,36 +24,6 @@ export function getDb(): Database.Database {
     _db = db; // only assigned after successful init
   }
   return _db;
-}
-
-function initDb(db: Database.Database): void {
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS listings (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      odoo_product_id INTEGER NOT NULL UNIQUE,
-      odoo_product_name TEXT,
-      status TEXT NOT NULL DEFAULT 'draft',
-      listing_data TEXT NOT NULL,
-      title TEXT,
-      price REAL,
-      ebay_item_id TEXT,
-      ebay_url TEXT,
-      error_message TEXT,
-      notes TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      approved_at TIMESTAMP,
-      uploaded_at TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS upload_log (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      listing_id INTEGER NOT NULL REFERENCES listings(id),
-      action TEXT NOT NULL,
-      status TEXT,
-      error_details TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
 }
 
 // ── Types ───────────────────────────────────────────────────────────
@@ -169,6 +140,11 @@ export function upsertListing(
   return Number(result.lastInsertRowid);
 }
 
+const ALLOWED_LISTING_COLUMNS = new Set([
+  'status', 'listing_data', 'title', 'price', 'notes',
+  'error_message', 'category_id', 'approved_at', 'ebay_item_id', 'uploaded_at',
+]);
+
 export function updateListingFields(
   db: Database.Database,
   id: number,
@@ -177,6 +153,7 @@ export function updateListingFields(
   const sets: string[] = [];
   const params: unknown[] = [];
   for (const [key, value] of Object.entries(fields)) {
+    if (!ALLOWED_LISTING_COLUMNS.has(key)) throw new Error(`Unexpected column: ${key}`);
     sets.push(`${key} = ?`);
     params.push(value);
   }
