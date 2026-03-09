@@ -10,6 +10,9 @@ importers:
 
   lib/ebay:
     dependencies:
+      '@ld/odoo-sdk':
+        specifier: workspace:*
+        version: link:../odoo
       fast-xml-parser:
         specifier: ^5.2.3
         version: 5.4.2
@@ -38,6 +41,9 @@ importers:
       '@fastify/static':
         specifier: ^8.1.0
         version: 8.3.0
+      '@ld/ebay-client':
+        specifier: workspace:*
+        version: link:../../lib/ebay
       '@ld/odoo-sdk':
         specifier: workspace:*
         version: link:../../lib/odoo

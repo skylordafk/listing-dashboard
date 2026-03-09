@@ -2,6 +2,7 @@ export { EbayClient } from './client.js';
 export { EbayTaxonomyClient } from './taxonomy.js';
 export { loadEbayConfig } from './config.js';
 export { EbayApiError, EbayAuthError } from './errors.js';
+export { xmlEscape } from './xml.js';
 export type {
   EbayConfig, ListingData, ItemSpecific,
   AddItemResult, VerifyAddItemResult, ReviseItemResult,

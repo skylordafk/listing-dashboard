@@ -100,10 +100,7 @@ export interface CategorySpecificsResult {
 
 // ── Image ────────────────────────────────────────────────────────────
 
-export interface OdooImage {
-  datas: string; // base64-encoded
-  name?: string;
-}
+export type { OdooImage } from '@ld/odoo-sdk';
 
 // ── eBay Performance / My eBay Selling Types ─────────────────────────
 

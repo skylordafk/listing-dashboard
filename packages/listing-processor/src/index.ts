@@ -20,7 +20,8 @@ import {
   finalizeListingData, listingQualityWarnings, applyListingFormOverrides,
   normalizeItemSpecifics, EBAY_177_ALLOWED_SPECIFICS, type ListingData,
 } from './normalizer.js';
-import { productToListing, EBAY_CATEGORY_LAPTOP, type OdooImage } from './field-mapper.js';
+import { productToListing, EBAY_CATEGORY_LAPTOP } from './field-mapper.js';
+import type { OdooImage } from '@ld/odoo-sdk';
 import {
   callUploadApi, buildIdempotencyKey, extractNonzeroFees, formatUploadApiError,
   type UploadResponseData,
