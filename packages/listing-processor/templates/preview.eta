@@ -8,6 +8,7 @@
 <%
   const p = it.product;
   const l = it.listing;
+  const enrichment = it.enrichment;
   const brand = p.x_brand || '?';
   const model = p.x_model_name || '';
   const series = p.x_series || '';
@@ -15,6 +16,7 @@
   const categoryId = it.categoryId || '177';
   const isUploaded = it.existing && it.existing.status === 'uploaded';
   const ebayItemId = it.existing ? it.existing.ebay_item_id : null;
+  const isEnriched = !!enrichment;
 %>
 
 <div class="page-header">
@@ -81,6 +83,56 @@
             </table>
         </div>
 
+        <% if (isEnriched) { %>
+        <div class="panel">
+            <div class="panel-header flex" style="justify-content:space-between;align-items:center;">
+                Enrichment
+                <span class="badge badge-approved" style="font-size:11px;">Enriched</span>
+            </div>
+            <table class="spec-table">
+                <tr>
+                    <td>Category</td>
+                    <td><strong><%= enrichment.category.name %></strong> <span class="text-muted text-xs">#<%= enrichment.category.id %></span></td>
+                </tr>
+                <% if (enrichment.category.breadcrumb && enrichment.category.breadcrumb.length > 0) { %>
+                <tr>
+                    <td>Breadcrumb</td>
+                    <td class="text-xs text-muted"><%= enrichment.category.breadcrumb.join(' > ') %></td>
+                </tr>
+                <% } %>
+                <tr>
+                    <td>Completeness</td>
+                    <td>
+                        Required: <%= enrichment.completeness.required.filled %>/<%= enrichment.completeness.required.total %>
+                        &middot; Recommended: <%= enrichment.completeness.recommended.filled %>/<%= enrichment.completeness.recommended.total %>
+                    </td>
+                </tr>
+                <% if (enrichment.requiredUnfilled && enrichment.requiredUnfilled.length > 0) { %>
+                <tr>
+                    <td>Missing Required</td>
+                    <td class="text-red text-xs"><%= enrichment.requiredUnfilled.join(', ') %></td>
+                </tr>
+                <% } %>
+                <% if (enrichment.enrichedAt) { %>
+                <tr>
+                    <td>Enriched At</td>
+                    <td class="text-xs text-muted"><%= new Date(enrichment.enrichedAt).toLocaleString() %></td>
+                </tr>
+                <% } %>
+            </table>
+        </div>
+        <% } else { %>
+        <div class="panel">
+            <div class="panel-header flex" style="justify-content:space-between;align-items:center;">
+                Enrichment
+                <span class="text-muted text-xs">Not enriched</span>
+            </div>
+            <div class="text-muted text-sm" style="padding:4px 0;">
+                This product has not been processed by intake-station. Using hardcoded laptop defaults for category and item specifics.
+            </div>
+        </div>
+        <% } %>
+
         <% if (it.images && it.images.length > 0) { %>
         <div class="panel">
             <div class="panel-header">Photos (<%= it.images.length %>)</div>
@@ -127,7 +179,7 @@
                 <div class="flex flex-gap" style="align-items:center;">
                     <input type="text" name="category_id" id="category-id-input" value="<%= categoryId %>"
                            class="form-control" style="width:80px;text-align:center;font-weight:600;">
-                    <span id="category-name" class="text-sm text-muted"><%= categoryId === '177' ? 'Laptops & Netbooks' : categoryId === '179' ? 'PC Desktops & All-In-Ones' : 'Cat ' + categoryId %></span>
+                    <span id="category-name" class="text-sm text-muted"><%= isEnriched ? enrichment.category.name : (categoryId === '177' ? 'Laptops & Netbooks' : categoryId === '179' ? 'PC Desktops & All-In-Ones' : 'Cat ' + categoryId) %></span>
                 </div>
                 <div id="cat-suggestions" style="margin-top:8px;display:none;"></div>
             </div>

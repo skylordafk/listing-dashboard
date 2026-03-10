@@ -22,6 +22,7 @@ import {
   normalizeItemSpecifics, EBAY_177_ALLOWED_SPECIFICS, type ListingData,
 } from './normalizer.js';
 import { productToListing, EBAY_CATEGORY_LAPTOP } from './field-mapper.js';
+import { parseEnrichmentBlob } from '@ld/catalog';
 import type { OdooImage } from '@ld/odoo-sdk';
 import {
   callUploadApi, buildIdempotencyKey, extractNonzeroFees, formatUploadApiError,
@@ -405,12 +406,15 @@ app.get<{ Params: { productId: string } }>('/products/:productId/preview', async
     const allSpecificNames = new Set([...EBAY_177_ALLOWED_SPECIFICS, ...Object.keys(specificOptions)]);
     const sortedSpecificNames = [...allSpecificNames].sort();
 
+    // Parse enrichment blob for template metadata display
+    const enrichment = parseEnrichmentBlob(product.x_ebay_item_specifics);
+
     reply.type('text/html');
     return render(req, reply, 'preview', {
       product, listing: listingData, images, existing,
       qualityWarnings, ebaySpecificNames: sortedSpecificNames,
       ebaySpecificValueOptions: specificOptions,
-      categoryId,
+      categoryId, enrichment,
       activeNav: 'products',
     });
   } catch (err) {
