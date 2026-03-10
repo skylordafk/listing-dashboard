@@ -242,6 +242,7 @@ export function normalizeItemSpecifics(
   itemSpecifics: unknown[],
   allowedNames?: Set<string>,
   valueOptionsByName?: Record<string, string[]>,
+  multiValueNames?: Set<string>,
 ): LegacyItemSpecific[] {
   if (!Array.isArray(itemSpecifics)) return [];
 
@@ -257,7 +258,16 @@ export function normalizeItemSpecifics(
     if (PLACEHOLDER_SPECIFIC_VALUES.has(value.toLowerCase())) continue;
 
     const truncatedName = truncateReadable(name, 65);
-    const parts = value.split(/[;,]/).map(s => s.trim()).filter(Boolean);
+
+    // Only split on delimiters for multi-value aspects.
+    // When no multiValueNames metadata is provided (e.g. hardcoded laptop path),
+    // fall back to splitting everything as a safety net for backward compat.
+    const isMultiValue = multiValueNames
+      ? multiValueNames.has(name)
+      : true; // no metadata → split as before
+    const parts = isMultiValue
+      ? value.split(/[;,]/).map(s => s.trim()).filter(Boolean)
+      : [value];
 
     for (const part of parts) {
       const normalizedValue = normalizeSpecificValue(name, part, valueOptionsByName);
@@ -317,6 +327,7 @@ export function finalizeListingData(
   listingData: ListingData,
   categoryOptions?: Record<string, string[]>,
   defaultConditionDescription?: string,
+  multiValueNames?: Set<string>,
 ): ListingData {
   const data = { ...listingData };
 
@@ -352,6 +363,7 @@ export function finalizeListingData(
     data.item_specifics ?? [],
     allowedNames,
     categoryOptions ?? undefined,
+    multiValueNames,
   );
 
   return data;
@@ -411,6 +423,7 @@ export function applyListingFormOverrides(
   form: Record<string, string>,
   categoryOptions?: Record<string, string[]>,
   defaultConditionDescription?: string,
+  multiValueNames?: Set<string>,
 ): ListingData {
   const data = { ...listingData };
 
@@ -451,7 +464,7 @@ export function applyListingFormOverrides(
     }
   }
 
-  return finalizeListingData(data, categoryOptions, defaultConditionDescription);
+  return finalizeListingData(data, categoryOptions, defaultConditionDescription, multiValueNames);
 }
 
 // Re-export value matcher utilities
