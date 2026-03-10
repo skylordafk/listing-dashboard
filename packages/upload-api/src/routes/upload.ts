@@ -33,7 +33,7 @@ export default async function (app: FastifyInstance) {
     return reply.code(code).send(body);
   });
 
-  app.post('/api/upload/batch', async () => {
+  app.post('/api/upload/batch', async (_req, reply) => {
     const listings = getApprovedListings(db);
     if (!listings.length) {
       return { status: 'ok', message: 'No approved listings to upload', results: [] };
@@ -48,6 +48,7 @@ export default async function (app: FastifyInstance) {
     const success = results.filter(r => r.status === 'success').length;
     const failed = results.filter(r => r.status === 'error').length;
 
-    return { status: 'ok', total: results.length, success, failed, results };
+    const code = failed === 0 ? 200 : failed === results.length ? 502 : 207;
+    return reply.code(code).send({ status: 'ok', total: results.length, success, failed, results });
   });
 }
