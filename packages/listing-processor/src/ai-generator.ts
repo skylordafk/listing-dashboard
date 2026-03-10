@@ -9,6 +9,7 @@ import {
   DEFAULT_CONDITION_NOTES, DEFAULT_SHIPPING_INFO, DEFAULT_RETURNS_POLICY,
   type AiConfig,
 } from './config.js';
+import { cleanText, truncateReadable } from './normalizer.js';
 // ── Category Context ────────────────────────────────────────────────
 
 export interface CategoryContext {
@@ -98,19 +99,6 @@ const STRUCTURED_OUTPUT_MODELS = new Set([
 ]);
 
 // ── Helpers ─────────────────────────────────────────────────────────
-
-function cleanText(value: unknown): string {
-  if (value == null) return '';
-  return String(value).replace(/\x00/g, ' ').replace(/\s+/g, ' ').trim();
-}
-
-function truncateReadable(text: string, limit: number): string {
-  if (text.length <= limit) return text;
-  let clipped = text.slice(0, limit).replace(/[ ,;:\-|/]+$/, '');
-  const lastSpace = clipped.lastIndexOf(' ');
-  if (lastSpace >= Math.max(0, limit - 18)) clipped = clipped.slice(0, lastSpace);
-  return clipped.replace(/[ ,;:\-|/]+$/, '');
-}
 
 function normalizeGeneratedTitle(title: string): string {
   let t = cleanText(title).replace(/[<>]+/g, ' ');
