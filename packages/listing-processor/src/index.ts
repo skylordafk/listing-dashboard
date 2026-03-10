@@ -244,7 +244,7 @@ app.get('/', async (req, reply) => {
 
 // ── Routes: Products ────────────────────────────────────────────────
 
-app.get<{ Querystring: { page?: string; per_page?: string; filter?: string; status?: string } }>(
+app.get<{ Querystring: { page?: string; per_page?: string; filter?: string; status?: string; photos?: string } }>(
   '/products',
   async (req, reply) => {
     const LISTING_STATUSES = ['draft', 'approved', 'rejected', 'uploading', 'uploaded', 'failed'] as const;
@@ -254,19 +254,23 @@ app.get<{ Querystring: { page?: string; per_page?: string; filter?: string; stat
       ...LISTING_STATUSES.map(s => [s, s.charAt(0).toUpperCase() + s.slice(1)]),
     ];
 
+    const emptyState = (extra: Record<string, unknown> = {}) => ({
+      products: [], error: extra.error ?? null,
+      page: 1, totalPages: 0, total: 0, scanFilter: 'all', photoFilter: 'all',
+      countAll: 0, countScanned: 0, countUnscanned: 0, currentScanTotal: 0,
+      countWithPhotos: 0, countNoPhotos: 0,
+      listedCount: 0, perPage: 100, perPageOptions: PER_PAGE_OPTIONS,
+      listingFilter: 'all', listingFilterOptions,
+      statusCounts: Object.fromEntries([...LISTING_STATUSES, 'unlisted'].map(s => [s, 0])),
+      activeNav: 'products',
+      ...extra,
+    });
+
     const odoo = getOdoo();
     if (!odoo) {
       flash(reply, 'error', 'Cannot connect to Odoo');
       reply.type('text/html');
-      return render(req, reply, 'products', {
-        products: [], error: 'Cannot connect to Odoo',
-        page: 1, totalPages: 0, total: 0, scanFilter: 'all',
-        countAll: 0, countScanned: 0, countUnscanned: 0, currentScanTotal: 0,
-        listedCount: 0, perPage: 100, perPageOptions: PER_PAGE_OPTIONS,
-        listingFilter: 'all', listingFilterOptions,
-        statusCounts: Object.fromEntries([...LISTING_STATUSES, 'unlisted'].map(s => [s, 0])),
-        activeNav: 'products',
-      });
+      return render(req, reply, 'products', emptyState({ error: 'Cannot connect to Odoo' }));
     }
 
     let page = Math.max(parseInt(req.query.page ?? '1', 10) || 1, 1);
@@ -275,6 +279,7 @@ app.get<{ Querystring: { page?: string; per_page?: string; filter?: string; stat
     const scanFilter = ['all', 'scanned', 'unscanned'].includes(req.query.filter ?? '') ? req.query.filter! : 'all';
     const validStatuses = new Set(['all', 'unlisted', ...LISTING_STATUSES]);
     const listingFilter = validStatuses.has(req.query.status ?? '') ? req.query.status! : 'all';
+    const photoFilter = ['all', 'has_photos', 'no_photos'].includes(req.query.photos ?? '') ? req.query.photos! : 'all';
 
     try {
       const scanDomain = (f: string) => {
@@ -305,6 +310,12 @@ app.get<{ Querystring: { page?: string; per_page?: string; filter?: string; stat
       const productIds = allProducts.map(p => p.id);
       const listingByProductId = getListingProductIds(db, productIds);
 
+      // Fetch image counts for ALL products (before filtering) to support photo filter
+      let allImageCounts = new Map<number, number>();
+      try {
+        allImageCounts = await getProductImageCounts(odoo, productIds);
+      } catch { /* ignore */ }
+
       const statusCounts: Record<string, number> = Object.fromEntries(
         [...LISTING_STATUSES, 'unlisted'].map(s => [s, 0])
       );
@@ -314,6 +325,8 @@ app.get<{ Querystring: { page?: string; per_page?: string; filter?: string; stat
         const listingStatus = listing?.status ?? null;
         const listingId = listing?.id ?? null;
         const hasSpecs = !!p.x_processor;
+        const hasEnrichment = !!p.x_ebay_category_id;
+        const imageCount = allImageCounts.get(p.id) ?? 0;
 
         if (listingStatus && listingStatus in statusCounts) {
           statusCounts[listingStatus]!++;
@@ -321,7 +334,7 @@ app.get<{ Querystring: { page?: string; per_page?: string; filter?: string; stat
           statusCounts.unlisted!++;
         }
 
-        return { ...p, listing_status: listingStatus, listing_id: listingId, has_specs: hasSpecs, image_count: 0 };
+        return { ...p, listing_status: listingStatus, listing_id: listingId, has_specs: hasSpecs, has_enrichment: hasEnrichment, image_count: imageCount };
       });
 
       // Filter by listing status
@@ -332,19 +345,27 @@ app.get<{ Querystring: { page?: string; per_page?: string; filter?: string; stat
         filteredProducts = enriched.filter(p => p.listing_status === listingFilter);
       }
 
+      // Filter by photo status
+      if (photoFilter === 'has_photos') {
+        filteredProducts = filteredProducts.filter(p => p.image_count > 0);
+      } else if (photoFilter === 'no_photos') {
+        filteredProducts = filteredProducts.filter(p => p.image_count === 0);
+      }
+
+      // Photo counts (computed from the listing-filtered set, before photo filter)
+      const listingFiltered = listingFilter === 'unlisted'
+        ? enriched.filter(p => !p.listing_status)
+        : LISTING_STATUSES.includes(listingFilter as any)
+          ? enriched.filter(p => p.listing_status === listingFilter)
+          : enriched;
+      const countWithPhotos = listingFiltered.filter(p => p.image_count > 0).length;
+      const countNoPhotos = listingFiltered.filter(p => p.image_count === 0).length;
+
       const total = filteredProducts.length;
       const totalPages = Math.ceil(total / perPage) || 0;
       if (totalPages > 0 && page > totalPages) page = totalPages;
       const offset = (page - 1) * perPage;
       const productList = filteredProducts.slice(offset, offset + perPage);
-
-      // Get image counts
-      try {
-        const imageCounts = await getProductImageCounts(odoo, productList.map(p => p.id));
-        for (const p of productList) {
-          p.image_count = imageCounts.get(p.id) ?? 0;
-        }
-      } catch { /* ignore */ }
 
       let listedCount = 0;
       for (const p of productList) {
@@ -354,7 +375,8 @@ app.get<{ Querystring: { page?: string; per_page?: string; filter?: string; stat
       reply.type('text/html');
       return render(req, reply, 'products', {
         products: productList, page, totalPages, total,
-        scanFilter, countAll, countScanned, countUnscanned,
+        scanFilter, photoFilter, countAll, countScanned, countUnscanned,
+        countWithPhotos, countNoPhotos,
         currentScanTotal: filteredScanTotal, listedCount,
         perPage, perPageOptions: PER_PAGE_OPTIONS,
         listingFilter, listingFilterOptions, statusCounts,
@@ -364,15 +386,7 @@ app.get<{ Querystring: { page?: string; per_page?: string; filter?: string; stat
     } catch (err) {
       flash(reply, 'error', `Odoo error: ${(err as Error).message}`);
       reply.type('text/html');
-      return render(req, reply, 'products', {
-        products: [], error: (err as Error).message,
-        page: 1, totalPages: 0, total: 0, scanFilter,
-        countAll: 0, countScanned: 0, countUnscanned: 0, currentScanTotal: 0,
-        listedCount: 0, perPage, perPageOptions: PER_PAGE_OPTIONS,
-        listingFilter, listingFilterOptions,
-        statusCounts: Object.fromEntries([...LISTING_STATUSES, 'unlisted'].map(s => [s, 0])),
-        activeNav: 'products',
-      });
+      return render(req, reply, 'products', emptyState({ error: (err as Error).message, scanFilter, photoFilter, perPage }));
     }
   },
 );
