@@ -179,9 +179,20 @@ export class EbayClient {
   // ── Listing XML builder ──────────────────────────────────────────────
 
   private buildItemXml(data: ListingData, imageUrls: string[], callName: string): string {
-    const specificsXml = (data.item_specifics ?? []).map(s =>
-      `\n            <NameValueList>\n                <Name>${xmlEscape(s.Name)}</Name>\n                <Value>${xmlEscape(s.Value)}</Value>\n            </NameValueList>`
-    ).join('');
+    // Group item specifics by name for multi-value support
+    const specGroups = new Map<string, string[]>();
+    for (const s of data.item_specifics ?? []) {
+      const existing = specGroups.get(s.Name);
+      if (existing) {
+        existing.push(s.Value);
+      } else {
+        specGroups.set(s.Name, [s.Value]);
+      }
+    }
+    const specificsXml = [...specGroups.entries()].map(([name, values]) => {
+      const valuesXml = values.map(v => `\n                <Value>${xmlEscape(v)}</Value>`).join('');
+      return `\n            <NameValueList>\n                <Name>${xmlEscape(name)}</Name>${valuesXml}\n            </NameValueList>`;
+    }).join('');
 
     const picturesXml = imageUrls.map(url =>
       `\n            <PictureURL>${xmlEscape(url)}</PictureURL>`

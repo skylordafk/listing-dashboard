@@ -30,7 +30,7 @@ export interface EnrichmentBlob {
     name: string;
     breadcrumb: string[];
   };
-  specifics: Record<string, string>;
+  specifics: Record<string, string | string[]>;
   requiredUnfilled: string[];
   completeness: EnrichmentCompleteness;
   enrichedAt: string;
@@ -68,8 +68,12 @@ export function parseEnrichmentBlob(raw: string | null | undefined | false): Enr
       },
       specifics: Object.fromEntries(
         Object.entries(specifics as Record<string, unknown>)
-          .filter(([, v]) => typeof v === 'string' && v.trim() !== ''),
-      ) as Record<string, string>,
+          .filter(([, v]) =>
+            (typeof v === 'string' && v.trim() !== '') ||
+            (Array.isArray(v) && v.length > 0 && v.every(item => typeof item === 'string')),
+          )
+          .map(([k, v]) => [k, Array.isArray(v) ? v.filter((s: string) => s.trim() !== '') : v]),
+      ) as Record<string, string | string[]>,
       requiredUnfilled: Array.isArray(parsed.requiredUnfilled)
         ? (parsed.requiredUnfilled as unknown[]).filter((s): s is string => typeof s === 'string')
         : [],

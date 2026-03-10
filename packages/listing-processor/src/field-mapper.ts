@@ -116,7 +116,13 @@ function buildEnrichedItemSpecifics(product: OdooProduct): LegacyItemSpecific[] 
 
   const specifics: LegacyItemSpecific[] = [];
   for (const [name, value] of Object.entries(blob.specifics)) {
-    if (value) specifics.push({ Name: name, Value: value });
+    if (Array.isArray(value)) {
+      for (const v of value) {
+        if (v) specifics.push({ Name: name, Value: v });
+      }
+    } else if (value) {
+      specifics.push({ Name: name, Value: value });
+    }
   }
   return specifics;
 }

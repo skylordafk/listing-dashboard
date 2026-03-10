@@ -256,18 +256,23 @@ export function normalizeItemSpecifics(
     if (!name || !value) continue;
     if (PLACEHOLDER_SPECIFIC_VALUES.has(value.toLowerCase())) continue;
 
-    const normalizedValue = normalizeSpecificValue(name, value, valueOptionsByName);
-    if (!normalizedValue) continue;
+    const truncatedName = truncateReadable(name, 65);
+    const parts = value.split(/[;,]/).map(s => s.trim()).filter(Boolean);
 
-    const entry: LegacyItemSpecific = {
-      Name: truncateReadable(name, 65),
-      Value: truncateReadable(normalizedValue, 120),
-    };
+    for (const part of parts) {
+      const normalizedValue = normalizeSpecificValue(name, part, valueOptionsByName);
+      if (!normalizedValue) continue;
 
-    const key = `${entry.Name.toLowerCase()}|${entry.Value.toLowerCase()}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    normalized.push(entry);
+      const entry: LegacyItemSpecific = {
+        Name: truncatedName,
+        Value: truncateReadable(normalizedValue, 65),
+      };
+
+      const key = `${entry.Name.toLowerCase()}|${entry.Value.toLowerCase()}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      normalized.push(entry);
+    }
   }
 
   return normalized;
