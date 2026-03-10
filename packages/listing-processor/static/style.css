@@ -438,6 +438,32 @@ td.truncate {
 .nowrap { white-space: nowrap; }
 .cost { color: var(--red); }
 .price { color: var(--green); font-weight: 600; }
+/* -- Readiness dots -- */
+.ready-dots {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+.ready-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.dot-ok { background: var(--green); }
+.dot-off { background: var(--border-muted); }
+/* -- Photo count -- */
+.photo-count {
+  display: inline-block;
+  min-width: 18px;
+  text-align: center;
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  padding: 0 3px;
+}
+.photo-ok { color: var(--green); }
+.photo-missing { color: var(--red); opacity: 0.7; }
+
 .warn-row td { background: var(--yellow-subtle) !important; }
 .err-row td { background: var(--red-subtle) !important; }
 .hidden { display: none; }
