@@ -2,7 +2,7 @@
   title: `${it.product.x_brand || ''} ${it.product.x_model_name || ''} — Preview`.trim(),
   activeNav: it.activeNav,
   flashes: it.flashes,
-  head: '<style>.preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}@media(max-width:960px){.preview-grid{grid-template-columns:1fr}}.img-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}.img-grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px;border:1px solid var(--border-muted);cursor:pointer}.img-grid img:hover{border-color:var(--blue)}.spec-table td:first-child{font-weight:600;white-space:nowrap;width:35%;color:var(--text-2)}.title-option{padding:8px 10px;border:1px solid var(--border-muted);border-radius:4px;cursor:pointer;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;transition:border-color .15s}.title-option:hover{border-color:var(--blue)}.title-option .chars{font-size:12px;color:var(--text-3);white-space:nowrap;margin-left:12px}.desc-preview{border:1px solid var(--border-muted);border-radius:4px;padding:12px;max-height:500px;overflow-y:auto;background:#fff}.desc-edit textarea{width:100%;min-height:300px;font-family:monospace;font-size:12px}.action-bar{display:flex;gap:8px;flex-wrap:wrap;padding:16px 0;border-top:1px solid var(--border-muted);margin-top:16px}.lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1000;cursor:pointer;align-items:center;justify-content:center}.lightbox.open{display:flex}.lightbox img{max-width:90vw;max-height:90vh;object-fit:contain}.cat-suggestion{padding:6px 10px;border:1px solid var(--border-muted);cursor:pointer;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;font-size:12px;transition:border-color .15s}.cat-suggestion:hover{border-color:var(--blue);background:var(--surface-alt)}.cat-suggestion.selected{border-color:var(--green);background:var(--green-subtle)}.cat-breadcrumb{color:var(--text-3);font-size:11px}.btn-loading{opacity:.7;cursor:wait;pointer-events:none}@keyframes pulse-bg{0%,100%{opacity:.7}50%{opacity:.4}}.btn-loading{animation:pulse-bg 1.2s ease-in-out infinite}.spec-row{display:grid;grid-template-columns:180px 1fr 28px;gap:6px;align-items:center;padding:4px 0;border-bottom:1px solid var(--border-muted)}.spec-row:last-child{border-bottom:none}.spec-row label{font-size:12px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.spec-row label .req{color:var(--red);font-weight:700}.spec-row label .rec{color:var(--blue);font-size:10px;margin-left:2px}.spec-row input,.spec-row select{font-size:12px;padding:3px 6px;border:1px solid var(--border-muted);border-radius:3px;width:100%}.spec-row input:focus,.spec-row select:focus{border-color:var(--blue);outline:none}.spec-row .spec-status{font-size:14px;text-align:center}.spec-section-toggle{font-size:11px;color:var(--blue);cursor:pointer;border:none;background:none;padding:4px 0;text-decoration:underline}.specs-header-info{font-size:11px;color:var(--text-3)}</style>'
+  head: '<style>.preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}@media(max-width:960px){.preview-grid{grid-template-columns:1fr}}.img-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}.img-grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px;border:1px solid var(--border-muted);cursor:pointer}.img-grid img:hover{border-color:var(--blue)}.spec-table td:first-child{font-weight:600;white-space:nowrap;width:35%;color:var(--text-2)}.title-option{padding:8px 10px;border:1px solid var(--border-muted);border-radius:4px;cursor:pointer;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;transition:border-color .15s}.title-option:hover{border-color:var(--blue)}.title-option .chars{font-size:12px;color:var(--text-3);white-space:nowrap;margin-left:12px}.desc-preview{border:1px solid var(--border-muted);border-radius:4px;padding:12px;max-height:500px;overflow-y:auto;background:#fff}.desc-edit textarea{width:100%;min-height:300px;font-family:monospace;font-size:12px}.action-bar{display:flex;gap:8px;flex-wrap:wrap;padding:16px 0;border-top:1px solid var(--border-muted);margin-top:16px}.lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1000;cursor:pointer;align-items:center;justify-content:center}.lightbox.open{display:flex}.lightbox img{max-width:90vw;max-height:90vh;object-fit:contain}.cat-suggestion{padding:6px 10px;border:1px solid var(--border-muted);cursor:pointer;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;font-size:12px;transition:border-color .15s}.cat-suggestion:hover{border-color:var(--blue);background:var(--surface-alt)}.cat-suggestion.selected{border-color:var(--green);background:var(--green-subtle)}.cat-breadcrumb{color:var(--text-3);font-size:11px}.btn-loading{opacity:.7;cursor:wait;pointer-events:none}@keyframes pulse-bg{0%,100%{opacity:.7}50%{opacity:.4}}.btn-loading{animation:pulse-bg 1.2s ease-in-out infinite}.spec-row{display:grid;grid-template-columns:180px 1fr 28px;gap:6px;align-items:center;padding:4px 0;border-bottom:1px solid var(--border-muted)}.spec-row:last-child{border-bottom:none}.spec-row label{font-size:12px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.spec-row label .req{color:var(--red);font-weight:700}.spec-row label .rec{color:var(--blue);font-size:10px;margin-left:2px}.spec-row input,.spec-row select{font-size:12px;padding:3px 6px;border:1px solid var(--border-muted);border-radius:3px;width:100%}.spec-row input:focus,.spec-row select:focus{border-color:var(--blue);outline:none}.spec-row .spec-status{font-size:14px;text-align:center}.spec-section-toggle{font-size:11px;color:var(--blue);cursor:pointer;border:none;background:none;padding:4px 0;text-decoration:underline}.specs-header-info{font-size:11px;color:var(--text-3)}.tag-container{display:flex;flex-wrap:wrap;gap:4px;align-items:center;min-height:28px;padding:2px 4px;border:1px solid var(--border-muted);border-radius:3px;background:#fff;cursor:text}.tag-container:focus-within{border-color:var(--blue)}.tag-chip{display:inline-flex;align-items:center;gap:2px;padding:1px 6px;background:var(--blue);color:#fff;border-radius:12px;font-size:11px;line-height:1.6;max-width:100%;white-space:nowrap}.tag-chip.over-limit{background:var(--red)}.tag-chip .tag-remove{cursor:pointer;font-size:13px;line-height:1;opacity:.8;margin-left:2px;font-weight:700}.tag-chip .tag-remove:hover{opacity:1}.tag-input{border:none;outline:none;font-size:12px;min-width:60px;flex:1;padding:2px 4px;background:transparent}.mv-checkboxes{display:flex;flex-wrap:wrap;gap:4px;max-height:150px;overflow-y:auto;padding:4px 0}.mv-checkboxes label{display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:2px 6px;border:1px solid var(--border-muted);border-radius:3px;cursor:pointer;white-space:nowrap}.mv-checkboxes label:hover{border-color:var(--blue)}.mv-checkboxes label.checked{border-color:var(--blue);background:var(--blue);color:#fff}.mv-check-toggle{font-size:11px;color:var(--blue);cursor:pointer;border:none;background:none;padding:2px 0;text-decoration:underline}</style>'
 }) %>
 
 <%
@@ -458,17 +458,27 @@ function renderSpecsPanel(aspects, specs) {
         const key = aspect.name.toLowerCase();
         coveredNames.add(key);
         // Use alias-based lookup (e.g., "Hard Drive Capacity" finds "Storage Capacity")
-        let values = findSpecByAlias(specMap, aspect.name) || (specEdits[key] ? [specEdits[key]] : []);
-        let value = values.join(', ');
-        // Smart-match the value against eBay's allowed values
-        if (value && aspect.values && aspect.values.length > 0) {
-            const matched = smartMatchValue(value, aspect.values, aspect.name);
-            if (matched) value = matched;
+        let values = findSpecByAlias(specMap, aspect.name) || (specEdits[key] ? (Array.isArray(specEdits[key]) ? specEdits[key] : [specEdits[key]]) : []);
+        if (aspect.multiValue) {
+            // Smart-match each value individually
+            if (aspect.values && aspect.values.length > 0) {
+                values = values.map(v => smartMatchValue(v, aspect.values, aspect.name) || v).filter(Boolean);
+            }
+            const row = makeSpecRow(aspect, values);
+            container.appendChild(row);
+            if (values.length > 0) filledCount++;
+            else if (aspect.required) requiredMissing++;
+        } else {
+            let value = values.join(', ');
+            if (value && aspect.values && aspect.values.length > 0) {
+                const matched = smartMatchValue(value, aspect.values, aspect.name);
+                if (matched) value = matched;
+            }
+            const row = makeSpecRow(aspect, value);
+            container.appendChild(row);
+            if (value) filledCount++;
+            else if (aspect.required) requiredMissing++;
         }
-        const row = makeSpecRow(aspect, value);
-        container.appendChild(row);
-        if (value) filledCount++;
-        else if (aspect.required) requiredMissing++;
     }
 
     // Render optional (hidden by default)
@@ -477,16 +487,26 @@ function renderSpecsPanel(aspects, specs) {
     for (const aspect of optional) {
         const key = aspect.name.toLowerCase();
         coveredNames.add(key);
-        let values = findSpecByAlias(specMap, aspect.name) || (specEdits[key] ? [specEdits[key]] : []);
-        let value = values.join(', ');
-        if (value && aspect.values && aspect.values.length > 0) {
-            const matched = smartMatchValue(value, aspect.values, aspect.name);
-            if (matched) value = matched;
+        let values = findSpecByAlias(specMap, aspect.name) || (specEdits[key] ? (Array.isArray(specEdits[key]) ? specEdits[key] : [specEdits[key]]) : []);
+        if (aspect.multiValue) {
+            if (aspect.values && aspect.values.length > 0) {
+                values = values.map(v => smartMatchValue(v, aspect.values, aspect.name) || v).filter(Boolean);
+            }
+            const row = makeSpecRow(aspect, values);
+            optContainer.appendChild(row);
+            if (values.length > 0) filledCount++;
+            hasOptional = true;
+        } else {
+            let value = values.join(', ');
+            if (value && aspect.values && aspect.values.length > 0) {
+                const matched = smartMatchValue(value, aspect.values, aspect.name);
+                if (matched) value = matched;
+            }
+            const row = makeSpecRow(aspect, value);
+            optContainer.appendChild(row);
+            if (value) filledCount++;
+            hasOptional = true;
         }
-        const row = makeSpecRow(aspect, value);
-        optContainer.appendChild(row);
-        if (value) filledCount++;
-        hasOptional = true;
     }
     optWrapper.style.display = hasOptional ? 'block' : 'none';
 
@@ -545,8 +565,142 @@ function makeSpecRow(aspect, value) {
     }
     row.appendChild(label);
 
-    // Input
+    // Multi-value tag input
+    if (aspect.multiValue) {
+        const values = Array.isArray(value) ? value.filter(v => v && v.trim()) : (value ? [value] : []);
+        const wrapper = document.createElement('div');
+        wrapper.style.display = 'flex';
+        wrapper.style.flexDirection = 'column';
+        wrapper.style.gap = '4px';
+
+        if (aspect.mode === 'SELECTION_ONLY' && aspect.values && aspect.values.length > 0) {
+            // Checkbox multi-select for SELECTION_ONLY
+            const tagBox = document.createElement('div');
+            tagBox.className = 'tag-container';
+            tagBox.dataset.specName = aspect.name;
+            tagBox.dataset.multiValue = 'true';
+            renderTagChips(tagBox, values);
+            wrapper.appendChild(tagBox);
+
+            const toggleBtn = document.createElement('button');
+            toggleBtn.type = 'button';
+            toggleBtn.className = 'mv-check-toggle';
+            toggleBtn.textContent = '▸ Show options';
+            const checkDiv = document.createElement('div');
+            checkDiv.className = 'mv-checkboxes';
+            checkDiv.style.display = 'none';
+            for (const v of aspect.values) {
+                const lbl = document.createElement('label');
+                const isChecked = values.some(val => val.toLowerCase() === v.toLowerCase());
+                if (isChecked) lbl.classList.add('checked');
+                lbl.innerHTML = esc(v);
+                lbl.onclick = () => {
+                    const currentVals = getTagValues(tagBox);
+                    const idx = currentVals.findIndex(cv => cv.toLowerCase() === v.toLowerCase());
+                    if (idx >= 0) {
+                        currentVals.splice(idx, 1);
+                        lbl.classList.remove('checked');
+                    } else {
+                        currentVals.push(v);
+                        lbl.classList.add('checked');
+                    }
+                    renderTagChips(tagBox, currentVals);
+                    specEdits[aspect.name.toLowerCase()] = currentVals;
+                    serializeSpecsToHidden();
+                    updateRowStatus(row, currentVals.length > 0 ? 'filled' : '', aspect.required);
+                };
+                checkDiv.appendChild(lbl);
+            }
+            toggleBtn.onclick = () => {
+                if (checkDiv.style.display === 'none') {
+                    checkDiv.style.display = 'flex';
+                    toggleBtn.textContent = '▾ Hide options';
+                } else {
+                    checkDiv.style.display = 'none';
+                    toggleBtn.textContent = '▸ Show options';
+                }
+            };
+            wrapper.appendChild(toggleBtn);
+            wrapper.appendChild(checkDiv);
+        } else {
+            // Tag input with datalist for FREE_TEXT
+            const tagBox = document.createElement('div');
+            tagBox.className = 'tag-container';
+            tagBox.dataset.specName = aspect.name;
+            tagBox.dataset.multiValue = 'true';
+            renderTagChips(tagBox, values);
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'tag-input';
+            input.placeholder = values.length === 0 ? (aspect.required ? 'Type and press Enter...' : 'Add value...') : '';
+            const listId = 'dl-' + aspect.name.replace(/[^a-zA-Z0-9]/g, '_');
+            if (aspect.values && aspect.values.length > 0 && aspect.values.length <= 500) {
+                input.setAttribute('list', listId);
+                const dl = document.createElement('datalist');
+                dl.id = listId;
+                for (const v of aspect.values.slice(0, 200)) {
+                    const opt = document.createElement('option');
+                    opt.value = v;
+                    dl.appendChild(opt);
+                }
+                tagBox.appendChild(dl);
+            }
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault();
+                    const val = input.value.trim();
+                    if (!val) return;
+                    const currentVals = getTagValues(tagBox);
+                    if (!currentVals.some(cv => cv.toLowerCase() === val.toLowerCase())) {
+                        currentVals.push(val);
+                        renderTagChips(tagBox, currentVals);
+                        tagBox.appendChild(input);
+                        if (tagBox.querySelector('datalist')) tagBox.appendChild(tagBox.querySelector('datalist'));
+                        specEdits[aspect.name.toLowerCase()] = currentVals;
+                        serializeSpecsToHidden();
+                        updateRowStatus(row, 'filled', aspect.required);
+                    }
+                    input.value = '';
+                    input.placeholder = '';
+                } else if (e.key === 'Backspace' && !input.value) {
+                    const currentVals = getTagValues(tagBox);
+                    if (currentVals.length > 0) {
+                        currentVals.pop();
+                        renderTagChips(tagBox, currentVals);
+                        tagBox.appendChild(input);
+                        if (tagBox.querySelector('datalist')) tagBox.appendChild(tagBox.querySelector('datalist'));
+                        specEdits[aspect.name.toLowerCase()] = currentVals;
+                        serializeSpecsToHidden();
+                        updateRowStatus(row, currentVals.length > 0 ? 'filled' : '', aspect.required);
+                        input.placeholder = currentVals.length === 0 ? (aspect.required ? 'Type and press Enter...' : 'Add value...') : '';
+                    }
+                }
+            });
+            tagBox.addEventListener('click', () => input.focus());
+            tagBox.appendChild(input);
+            wrapper.appendChild(tagBox);
+        }
+        row.appendChild(wrapper);
+
+        // Status icon
+        const status = document.createElement('span');
+        status.className = 'spec-status';
+        const hasValue = Array.isArray(value) ? value.length > 0 : !!value;
+        if (hasValue) {
+            status.textContent = '✅';
+        } else if (aspect.required) {
+            status.textContent = '⚠️';
+        } else {
+            status.textContent = '';
+        }
+        row.appendChild(status);
+        return row;
+    }
+
+    // Single-value input (unchanged behavior)
     const listId = 'dl-' + aspect.name.replace(/[^a-zA-Z0-9]/g, '_');
+    const singleValue = Array.isArray(value) ? value.join(', ') : (value || '');
     if (aspect.mode === 'SELECTION_ONLY' && aspect.values && aspect.values.length > 0) {
         const sel = document.createElement('select');
         sel.dataset.specName = aspect.name;
@@ -558,7 +712,7 @@ function makeSpecRow(aspect, value) {
             const opt = document.createElement('option');
             opt.value = v;
             opt.textContent = v;
-            if (v.toLowerCase() === value.toLowerCase()) opt.selected = true;
+            if (singleValue && v.toLowerCase() === singleValue.toLowerCase()) opt.selected = true;
             sel.appendChild(opt);
         }
         sel.addEventListener('change', () => { specEdits[aspect.name.toLowerCase()] = sel.value; serializeSpecsToHidden(); updateRowStatus(row, sel.value, aspect.required); });
@@ -566,7 +720,7 @@ function makeSpecRow(aspect, value) {
     } else {
         const input = document.createElement('input');
         input.type = 'text';
-        input.value = value;
+        input.value = singleValue;
         input.dataset.specName = aspect.name;
         input.placeholder = aspect.required ? 'Required' : '';
         if (aspect.values && aspect.values.length > 0 && aspect.values.length <= 500) {
@@ -587,7 +741,7 @@ function makeSpecRow(aspect, value) {
     // Status icon
     const status = document.createElement('span');
     status.className = 'spec-status';
-    if (value) {
+    if (singleValue) {
         status.textContent = '✅';
     } else if (aspect.required) {
         status.textContent = '⚠️';
@@ -597,6 +751,50 @@ function makeSpecRow(aspect, value) {
     row.appendChild(status);
 
     return row;
+}
+
+function renderTagChips(container, values) {
+    // Remove existing chips
+    container.querySelectorAll('.tag-chip').forEach(el => el.remove());
+    // Insert before input or at start
+    const input = container.querySelector('.tag-input');
+    for (const v of values) {
+        const chip = document.createElement('span');
+        chip.className = 'tag-chip';
+        if (v.length > 65) chip.classList.add('over-limit');
+        chip.title = v.length > 65 ? v + ' (' + v.length + '/65 chars — too long)' : v;
+        chip.dataset.tagValue = v;
+        chip.innerHTML = esc(v.length > 30 ? v.substring(0, 28) + '...' : v) + ' <span class="tag-remove">&times;</span>';
+        chip.querySelector('.tag-remove').onclick = (e) => {
+            e.stopPropagation();
+            const currentVals = getTagValues(container);
+            const idx = currentVals.findIndex(cv => cv === v);
+            if (idx >= 0) currentVals.splice(idx, 1);
+            renderTagChips(container, currentVals);
+            // Re-append input and datalist
+            if (input) { container.appendChild(input); input.placeholder = currentVals.length === 0 ? 'Add value...' : ''; }
+            const dl = container.querySelector('datalist');
+            if (dl) container.appendChild(dl);
+            // Update checkbox state if applicable
+            const checkboxes = container.closest('.spec-row')?.querySelectorAll('.mv-checkboxes label');
+            if (checkboxes) {
+                checkboxes.forEach(lbl => {
+                    const lblVal = lbl.textContent.replace('×', '').trim();
+                    if (lblVal.toLowerCase() === v.toLowerCase()) lbl.classList.remove('checked');
+                });
+            }
+            const aspectName = container.dataset.specName;
+            specEdits[aspectName.toLowerCase()] = currentVals;
+            serializeSpecsToHidden();
+            updateSpecsCount();
+        };
+        if (input) container.insertBefore(chip, input);
+        else container.appendChild(chip);
+    }
+}
+
+function getTagValues(container) {
+    return Array.from(container.querySelectorAll('.tag-chip')).map(c => c.dataset.tagValue);
 }
 
 function renderFallbackSpecs(specs) {
@@ -640,9 +838,14 @@ function updateSpecsCount() {
     const allRows = document.querySelectorAll('#specs-container .spec-row, #specs-optional .spec-row, #specs-extra .spec-row');
     let filled = 0, total = allRows.length, reqMissing = 0;
     for (const row of allRows) {
-        const input = row.querySelector('[data-spec-name]');
-        const val = input ? (input.value || '').trim() : '';
-        if (val) filled++;
+        const el = row.querySelector('[data-spec-name]');
+        let hasFill = false;
+        if (el && el.dataset.multiValue === 'true') {
+            hasFill = getTagValues(el).length > 0;
+        } else {
+            hasFill = el ? !!(el.value || '').trim() : false;
+        }
+        if (hasFill) filled++;
         else if (row.querySelector('.req')) reqMissing++;
     }
     const statusEl = document.getElementById('specs-status');
@@ -668,10 +871,15 @@ function validateBeforeSubmit(action) {
     const missingReq = [];
     for (const row of reqRows) {
         if (!row.querySelector('.req')) continue; // not required
-        const input = row.querySelector('[data-spec-name]');
-        if (!input || !input.value.trim()) {
-            missingReq.push(input ? input.dataset.specName : 'Unknown');
+        const el = row.querySelector('[data-spec-name]');
+        if (!el) { missingReq.push('Unknown'); continue; }
+        let hasFill = false;
+        if (el.dataset.multiValue === 'true') {
+            hasFill = getTagValues(el).length > 0;
+        } else {
+            hasFill = !!(el.value || '').trim();
         }
+        if (!hasFill) missingReq.push(el.dataset.specName);
     }
     if (missingReq.length > 0) {
         issues.push('Required item specifics missing: ' + missingReq.join(', '));
@@ -681,7 +889,9 @@ function validateBeforeSubmit(action) {
     const allSpecInputs = document.querySelectorAll('[data-spec-name]');
     let filledSpecs = 0;
     for (const inp of allSpecInputs) {
-        if (inp.value && inp.value.trim()) filledSpecs++;
+        if (inp.dataset.multiValue === 'true') {
+            if (getTagValues(inp).length > 0) filledSpecs++;
+        } else if (inp.value && inp.value.trim()) filledSpecs++;
     }
     if (filledSpecs < 5) issues.push('Only ' + filledSpecs + ' item specifics filled (recommend 10+)');
 
@@ -698,19 +908,26 @@ function validateBeforeSubmit(action) {
 function serializeSpecsToHidden() {
     const hidden = document.getElementById('specs-hidden-fields');
     hidden.innerHTML = '';
-    const inputs = document.querySelectorAll('#specs-container [data-spec-name], #specs-optional [data-spec-name], #specs-extra [data-spec-name]');
+    const elements = document.querySelectorAll('#specs-container [data-spec-name], #specs-optional [data-spec-name], #specs-extra [data-spec-name]');
     let idx = 0;
-    for (const input of inputs) {
-        const name = input.dataset.specName;
-        const rawValue = (input.value || '').trim();
-        if (!rawValue) continue;
-        // Split comma-separated values for multi-value fields
-        const values = rawValue.includes(',') ? rawValue.split(',').map(v => v.trim()).filter(Boolean) : [rawValue];
+    for (const el of elements) {
+        const name = el.dataset.specName;
+        let values;
+        if (el.dataset.multiValue === 'true') {
+            // Multi-value: read tag chips
+            values = getTagValues(el);
+        } else {
+            // Single-value: read input/select value
+            const rawValue = (el.value || '').trim();
+            if (!rawValue) continue;
+            values = [rawValue];
+        }
         for (const val of values) {
+            if (!val || !val.trim()) continue;
             const hn = document.createElement('input');
             hn.type = 'hidden'; hn.name = 'spec_name_' + idx; hn.value = name;
             const hv = document.createElement('input');
-            hv.type = 'hidden'; hv.name = 'spec_value_' + idx; hv.value = val;
+            hv.type = 'hidden'; hv.name = 'spec_value_' + idx; hv.value = val.trim();
             hidden.appendChild(hn);
             hidden.appendChild(hv);
             idx++;
