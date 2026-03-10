@@ -281,10 +281,13 @@ app.get<{ Querystring: { page?: string; per_page?: string; filter?: string; stat
         return [] as Array<[string, string, unknown]>;
       };
 
+      const MAX_PRODUCTS = 2000;
       const filteredScanTotal = await odoo.searchCount('product.product', scanDomain(scanFilter));
+      const fetchLimit = Math.min(filteredScanTotal, MAX_PRODUCTS);
+      const resultsCapped = filteredScanTotal > MAX_PRODUCTS;
       const allProducts: OdooProduct[] = [];
       const batchSize = 500;
-      for (let offset = 0; offset < filteredScanTotal; offset += batchSize) {
+      for (let offset = 0; offset < fetchLimit; offset += batchSize) {
         const batch = await odoo.searchRead<OdooProduct>(
           'product.product', scanDomain(scanFilter),
           { fields: [...DEFAULT_PRODUCT_FIELDS] as any, limit: batchSize, offset },
@@ -354,6 +357,7 @@ app.get<{ Querystring: { page?: string; per_page?: string; filter?: string; stat
         perPage, perPageOptions: PER_PAGE_OPTIONS,
         listingFilter, listingFilterOptions, statusCounts,
         activeNav: 'products',
+        resultsCapped, cappedTotal: filteredScanTotal,
       });
     } catch (err) {
       flash(reply, 'error', `Odoo error: ${(err as Error).message}`);
