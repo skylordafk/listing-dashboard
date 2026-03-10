@@ -103,6 +103,10 @@ export interface OdooProduct {
   x_test_webcam: TestResult | false;
   x_test_wifi: TestResult | false;
 
+  // eBay Enrichment (written by intake-station)
+  x_ebay_category_id: string | false;
+  x_ebay_item_specifics: string | false;  // JSON blob from intake-station enrichment
+
   // eBay Performance Tracking
   x_ebay_item_id: string | false;
   x_ebay_status: EbayStatus | false;
@@ -142,6 +146,8 @@ export const CUSTOM_FIELDS = [
   'x_test_battery', 'x_test_bluetooth', 'x_test_display', 'x_test_keyboard',
   'x_test_microphone', 'x_test_ports', 'x_test_speakers', 'x_test_touchpad',
   'x_test_webcam', 'x_test_wifi',
+  // eBay enrichment (intake-station)
+  'x_ebay_category_id', 'x_ebay_item_specifics',
   // eBay performance
   'x_ebay_item_id', 'x_ebay_status', 'x_ebay_listed_date', 'x_ebay_sold_date',
   'x_ebay_sold_price', 'x_ebay_watchers', 'x_ebay_views', 'x_ebay_impressions',

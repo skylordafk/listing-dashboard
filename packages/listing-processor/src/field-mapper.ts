@@ -7,7 +7,7 @@ import type { OdooProduct, OdooImage } from '@ld/odoo-sdk';
 import { xmlEscape } from '@ld/ebay-client';
 import type { ListingData } from './normalizer.js';
 import type { LegacyItemSpecific } from './normalizer.js';
-import { EBAY_CONDITIONS } from '@ld/catalog';
+import { EBAY_CONDITIONS, CONDITION_LABEL_TO_ID, parseEnrichmentBlob } from '@ld/catalog';
 
 // ── Constants ────────────────────────────────────────────────────────
 
@@ -108,7 +108,20 @@ function buildTitle(product: OdooProduct): string {
   return title;
 }
 
-// ── Item Specifics Builder ──────────────────────────────────────────
+// ── Enrichment-Aware Item Specifics ─────────────────────────────────
+
+function buildEnrichedItemSpecifics(product: OdooProduct): LegacyItemSpecific[] | null {
+  const blob = parseEnrichmentBlob(product.x_ebay_item_specifics);
+  if (!blob) return null;
+
+  const specifics: LegacyItemSpecific[] = [];
+  for (const [name, value] of Object.entries(blob.specifics)) {
+    if (value) specifics.push({ Name: name, Value: value });
+  }
+  return specifics;
+}
+
+// ── Item Specifics Builder (hardcoded laptop fallback) ──────────────
 
 function buildItemSpecifics(product: OdooProduct): LegacyItemSpecific[] {
   const specifics: LegacyItemSpecific[] = [];
@@ -241,14 +254,28 @@ function calculatePrice(product: OdooProduct): number {
 
 export function productToListing(product: OdooProduct, images?: OdooImage[]): ListingData {
   const title = buildTitle(product);
-  const itemSpecifics = buildItemSpecifics(product);
   const descriptionHtml = buildDescription(product);
   const price = calculatePrice(product);
 
+  // Category: use enrichment if available, else fallback to laptop
+  const categoryId = product.x_ebay_category_id || EBAY_CATEGORY_LAPTOP;
+
+  // Condition: use x_condition mapping if available, else fallback to Used
+  let conditionId: string = EBAY_CONDITION_USED;
+  if (product.x_condition) {
+    const mapped = CONDITION_LABEL_TO_ID[product.x_condition];
+    if (mapped !== undefined) {
+      conditionId = String(mapped);
+    }
+  }
+
+  // Item specifics: try enrichment blob first, fall back to hardcoded mapper
+  const itemSpecifics = buildEnrichedItemSpecifics(product) ?? buildItemSpecifics(product);
+
   const listing: ListingData = {
     title,
-    category_id: EBAY_CATEGORY_LAPTOP,
-    condition_id: EBAY_CONDITION_USED,
+    category_id: categoryId,
+    condition_id: conditionId,
     condition_description: '',
     price,
     currency: 'USD',
