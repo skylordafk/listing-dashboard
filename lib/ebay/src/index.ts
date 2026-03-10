@@ -4,7 +4,7 @@ export { loadEbayConfig } from './config.js';
 export { EbayApiError, EbayAuthError } from './errors.js';
 export { xmlEscape } from './xml.js';
 export type {
-  EbayConfig, ListingData, ItemSpecific,
+  EbayConfig, ListingData, ItemSpecific, LegacyItemSpecific,
   AddItemResult, VerifyAddItemResult, ReviseItemResult,
   TestConnectionResult, Fee, ApiWarning,
   CategorySpecificsResult, CategoryAspect,

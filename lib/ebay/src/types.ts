@@ -1,3 +1,16 @@
+// Re-export the catalog's canonical ItemSpecific type alongside the legacy shape
+export type { ItemSpecific } from '@ld/catalog';
+
+/**
+ * Legacy item-specific shape used throughout listing-dashboard.
+ * Capital-letter keys (Name/Value) match the eBay Trading API XML format.
+ * Phase 2 will migrate consumers to the catalog's lowercase shape.
+ */
+export interface LegacyItemSpecific {
+  Name: string;
+  Value: string;
+}
+
 // ── eBay Config ──────────────────────────────────────────────────────
 
 export interface EbayConfig {
@@ -38,16 +51,11 @@ export interface ListingData {
   location?: string;
   postal_code?: string;
   dispatch_days?: number;
-  item_specifics?: ItemSpecific[];
+  item_specifics?: LegacyItemSpecific[];
   // Inline policy fields (fallback when no business policies)
   returns_accepted?: boolean;
   return_days?: number;
   shipping_cost?: number;
-}
-
-export interface ItemSpecific {
-  Name: string;
-  Value: string;
 }
 
 // ── API Responses ────────────────────────────────────────────────────
@@ -177,6 +185,6 @@ export interface EbayItemDetail {
   quantityAvailable: number;
   listingDetails: EbayListingDetails;
   sellingStatus: EbaySellingStatus;
-  itemSpecifics: ItemSpecific[];
+  itemSpecifics: LegacyItemSpecific[];
   pictureURLs: string[];
 }

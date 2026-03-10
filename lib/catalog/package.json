@@ -1,0 +1,16 @@
+{
+  "name": "@ld/catalog",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Shared product contract between intake-station and listing-dashboard",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@types/node": "^25.2.3"
+  }
+}

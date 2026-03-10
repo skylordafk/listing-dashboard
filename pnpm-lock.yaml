@@ -8,6 +8,12 @@ importers:
 
   .: {}
 
+  lib/catalog:
+    devDependencies:
+      '@types/node':
+        specifier: ^25.2.3
+        version: 25.3.5
+
   lib/db:
     dependencies:
       better-sqlite3:
@@ -23,6 +29,9 @@ importers:
 
   lib/ebay:
     dependencies:
+      '@ld/catalog':
+        specifier: workspace:*
+        version: link:../catalog
       '@ld/odoo-sdk':
         specifier: workspace:*
         version: link:../odoo
@@ -54,6 +63,9 @@ importers:
       '@fastify/static':
         specifier: ^8.1.0
         version: 8.3.0
+      '@ld/catalog':
+        specifier: workspace:*
+        version: link:../../lib/catalog
       '@ld/db':
         specifier: workspace:*
         version: link:../../lib/db
@@ -91,6 +103,9 @@ importers:
       '@fastify/cors':
         specifier: ^11.0.0
         version: 11.2.0
+      '@ld/catalog':
+        specifier: workspace:*
+        version: link:../../lib/catalog
       '@ld/db':
         specifier: workspace:*
         version: link:../../lib/db

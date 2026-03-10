@@ -225,7 +225,15 @@ export function sanitizeDescriptionHtml(html: string): string {
 
 // ── Item Specifics Normalization ────────────────────────────────────
 
-export interface ItemSpecific {
+// Re-export the catalog's canonical ItemSpecific type
+export type { ItemSpecific } from '@ld/catalog';
+
+/**
+ * Legacy item-specific shape used throughout listing-dashboard.
+ * Capital-letter keys (Name/Value) match the eBay Trading API XML format.
+ * Phase 2 will migrate consumers to the catalog's lowercase shape.
+ */
+export interface LegacyItemSpecific {
   Name: string;
   Value: string;
 }
@@ -234,10 +242,10 @@ export function normalizeItemSpecifics(
   itemSpecifics: unknown[],
   allowedNames?: Set<string>,
   valueOptionsByName?: Record<string, string[]>,
-): ItemSpecific[] {
+): LegacyItemSpecific[] {
   if (!Array.isArray(itemSpecifics)) return [];
 
-  const normalized: ItemSpecific[] = [];
+  const normalized: LegacyItemSpecific[] = [];
   const seen = new Set<string>();
 
   for (const raw of itemSpecifics) {
@@ -251,7 +259,7 @@ export function normalizeItemSpecifics(
     const normalizedValue = normalizeSpecificValue(name, value, valueOptionsByName);
     if (!normalizedValue) continue;
 
-    const entry: ItemSpecific = {
+    const entry: LegacyItemSpecific = {
       Name: truncateReadable(name, 65),
       Value: truncateReadable(normalizedValue, 120),
     };
@@ -284,7 +292,7 @@ export interface ListingData {
   currency?: string;
   quantity?: number;
   listing_duration?: string;
-  item_specifics: ItemSpecific[];
+  item_specifics: LegacyItemSpecific[];
   description_html: string;
   image_urls?: string[];
   image_count?: number;
@@ -372,7 +380,7 @@ export function listingQualityWarnings(listingData: ListingData): string[] {
 
   const specificNames = new Set(
     specifics
-      .filter((s): s is ItemSpecific => typeof s === 'object' && s !== null)
+      .filter((s): s is LegacyItemSpecific => typeof s === 'object' && s !== null)
       .map(s => (s.Name ?? '').trim().toLowerCase())
   );
   const missingCore = [...CORE_SPECIFIC_NAMES].filter(n => !specificNames.has(n)).sort();
@@ -428,7 +436,7 @@ export function applyListingFormOverrides(
   if (form.spec_count) {
     const count = parseInt(form.spec_count, 10);
     if (count > 0) {
-      const specs: ItemSpecific[] = [];
+      const specs: LegacyItemSpecific[] = [];
       for (let i = 0; i < count; i++) {
         const name = form[`spec_name_${i}`];
         const value = form[`spec_value_${i}`];

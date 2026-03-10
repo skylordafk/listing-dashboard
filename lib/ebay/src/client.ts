@@ -1,6 +1,7 @@
 import { loadEbayConfig } from './config.js';
 import { EbayApiError, EbayAuthError } from './errors.js';
 import { parseXml, xmlEscape, xmlGet, xmlFindAll, safeCdata } from './xml.js';
+import { EBAY_CONDITIONS } from '@ld/catalog';
 import type {
   EbayConfig, ListingData, AddItemResult, VerifyAddItemResult,
   ReviseItemResult, TestConnectionResult, CategorySpecificsResult,
@@ -202,7 +203,7 @@ export class EbayClient {
         <PrimaryCategory>
             <CategoryID>${data.category_id ?? '177'}</CategoryID>
         </PrimaryCategory>
-        <ConditionID>${data.condition_id ?? '3000'}</ConditionID>
+        <ConditionID>${data.condition_id ?? EBAY_CONDITIONS.used}</ConditionID>
         <ConditionDescription>${xmlEscape(data.condition_description ?? '')}</ConditionDescription>
         <StartPrice currencyID="${currency}">${data.price.toFixed(2)}</StartPrice>
         <Quantity>1</Quantity>
