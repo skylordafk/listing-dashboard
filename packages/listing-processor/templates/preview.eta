@@ -52,7 +52,8 @@
                     ['RAM', p.x_ram_size], ['Storage', [p.x_storage_capacity, p.x_storage_type].filter(Boolean).join(' ')],
                     ['GPU', p.x_gpu], ['Graphics', p.x_graphics_type],
                     ['Screen', p.x_screen_size], ['Resolution', p.x_max_resolution],
-                    ['OS', p.x_operating_system], ['Condition', p.x_condition],
+                    ['OS', p.x_operating_system],
+                    ['Condition', ({ new: 'New', like_new: 'Like New', good: 'Good', fair: 'Fair', parts: 'For Parts' })[p.x_condition] || p.x_condition],
                     ['Color', p.x_color], ['Connectivity', p.x_connectivity],
                     ['Features', p.x_features],
                 ];

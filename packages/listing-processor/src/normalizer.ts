@@ -17,10 +17,6 @@ export const TITLE_MIN_RECOMMENDED_CHARS = 65;
 export const DESCRIPTION_MIN_RECOMMENDED_TEXT_CHARS = 350;
 export const MIN_RECOMMENDED_ITEM_SPECIFICS = 6;
 
-export const CORE_SPECIFIC_NAMES = new Set([
-  'brand', 'model', 'processor', 'ram size', 'storage capacity', 'screen size',
-]);
-
 export const PLACEHOLDER_SPECIFIC_VALUES = new Set([
   'n/a', 'na', 'none', 'unknown', 'not applicable', 'null', '-', '--',
 ]);
@@ -393,16 +389,6 @@ export function listingQualityWarnings(listingData: ListingData): string[] {
     warnings.push(
       `Only ${specifics.length} item specifics found. Add more specifics to improve listing completeness.`
     );
-  }
-
-  const specificNames = new Set(
-    specifics
-      .filter((s): s is LegacyItemSpecific => typeof s === 'object' && s !== null)
-      .map(s => (s.Name ?? '').trim().toLowerCase())
-  );
-  const missingCore = [...CORE_SPECIFIC_NAMES].filter(n => !specificNames.has(n)).sort();
-  if (missingCore.length > 0) {
-    warnings.push(`Missing core item specifics: ${missingCore.join(', ')}.`);
   }
 
   try {
