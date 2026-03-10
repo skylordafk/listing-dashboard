@@ -24,7 +24,7 @@ import { getOdoo, getProductImages, getProductImageCounts } from '../helpers/odo
 import {
   getExistingListing, mergeSavedListingData, listingDataFromSavedOnly, sanitizeListingHtml,
 } from '../helpers/listing.js';
-import { getCategorySpecificOptions } from '../helpers/cache.js';
+import { getCategorySpecificOptions, getCategoryAspectMeta } from '../helpers/cache.js';
 
 export default async function (app: FastifyInstance) {
 
@@ -202,8 +202,9 @@ export default async function (app: FastifyInstance) {
 
       const ebayConfig = loadEbayAppConfig();
       const categoryId = String(listingData.category_id ?? EBAY_CATEGORY_LAPTOP);
-      const specificOptions = await getCategorySpecificOptions(categoryId);
-      listingData = finalizeListingData(listingData, specificOptions, ebayConfig.default_condition_description);
+      const aspectMeta = await getCategoryAspectMeta(categoryId);
+      const specificOptions = aspectMeta.options;
+      listingData = finalizeListingData(listingData, specificOptions, ebayConfig.default_condition_description, aspectMeta.multiValueNames);
       listingData = sanitizeListingHtml(listingData);
       const qualityWarnings = listingQualityWarnings(listingData);
 
@@ -245,10 +246,10 @@ export default async function (app: FastifyInstance) {
 
       const ebayConfig = loadEbayAppConfig();
       const categoryId = String((req.body as Record<string, string>).category_id ?? listingData.category_id ?? EBAY_CATEGORY_LAPTOP);
-      const categoryOptions = await getCategorySpecificOptions(categoryId);
+      const approveMeta = await getCategoryAspectMeta(categoryId);
       listingData = applyListingFormOverrides(
         listingData, req.body as Record<string, string>,
-        categoryOptions, ebayConfig.default_condition_description,
+        approveMeta.options, ebayConfig.default_condition_description, approveMeta.multiValueNames,
       );
 
       const warnings = listingQualityWarnings(listingData);
@@ -313,13 +314,13 @@ export default async function (app: FastifyInstance) {
       const { existing, savedData } = getExistingListing(db, productId);
       let listingData = mergeSavedListingData(productToListing(product, images), savedData);
       const ebayConfig = loadEbayAppConfig();
-      listingData = finalizeListingData(listingData, undefined, ebayConfig.default_condition_description);
-
       const categoryId = String((req.body as Record<string, string>).category_id ?? listingData.category_id ?? EBAY_CATEGORY_LAPTOP);
-      const categoryOptions = await getCategorySpecificOptions(categoryId);
+      const editMeta = await getCategoryAspectMeta(categoryId);
+      listingData = finalizeListingData(listingData, undefined, ebayConfig.default_condition_description, editMeta.multiValueNames);
+
       listingData = applyListingFormOverrides(
         listingData, req.body as Record<string, string>,
-        categoryOptions, ebayConfig.default_condition_description,
+        editMeta.options, ebayConfig.default_condition_description, editMeta.multiValueNames,
       );
 
       const warnings = listingQualityWarnings(listingData);
@@ -365,12 +366,12 @@ export default async function (app: FastifyInstance) {
       }
 
       const ebayConfig = loadEbayAppConfig();
-      listingData = finalizeListingData(listingData, undefined, ebayConfig.default_condition_description);
       const categoryId = String((req.body as Record<string, string>).category_id ?? listingData.category_id ?? EBAY_CATEGORY_LAPTOP);
-      const categoryOptions = await getCategorySpecificOptions(categoryId);
+      const saveMeta = await getCategoryAspectMeta(categoryId);
+      listingData = finalizeListingData(listingData, undefined, ebayConfig.default_condition_description, saveMeta.multiValueNames);
       listingData = applyListingFormOverrides(
         listingData, req.body as Record<string, string>,
-        categoryOptions, ebayConfig.default_condition_description,
+        saveMeta.options, ebayConfig.default_condition_description, saveMeta.multiValueNames,
       );
 
       const warnings = listingQualityWarnings(listingData);
@@ -426,12 +427,12 @@ export default async function (app: FastifyInstance) {
       }
 
       const ebayConfig = loadEbayAppConfig();
-      listingData = finalizeListingData(listingData, undefined, ebayConfig.default_condition_description);
       const categoryId = String((req.body as Record<string, string>).category_id ?? listingData.category_id ?? EBAY_CATEGORY_LAPTOP);
-      const categoryOptions = await getCategorySpecificOptions(categoryId);
+      const reviseMeta = await getCategoryAspectMeta(categoryId);
+      listingData = finalizeListingData(listingData, undefined, ebayConfig.default_condition_description, reviseMeta.multiValueNames);
       listingData = applyListingFormOverrides(
         listingData, req.body as Record<string, string>,
-        categoryOptions, ebayConfig.default_condition_description,
+        reviseMeta.options, ebayConfig.default_condition_description, reviseMeta.multiValueNames,
       );
 
       const warnings = listingQualityWarnings(listingData);

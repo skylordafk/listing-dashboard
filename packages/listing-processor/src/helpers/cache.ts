@@ -3,10 +3,20 @@
 import { callUploadApi } from '../upload-client.js';
 import { EBAY_CATEGORY_LAPTOP } from '../field-mapper.js';
 
-export const _categorySpecCache: Record<string, { fetchedAt: number; value: Record<string, string[]> }> = {};
+export interface CategoryAspectMeta {
+  options: Record<string, string[]>;
+  multiValueNames: Set<string>;
+}
+
+export const _categorySpecCache: Record<string, { fetchedAt: number; value: CategoryAspectMeta }> = {};
 export const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
 
 export async function getCategorySpecificOptions(categoryId: string = EBAY_CATEGORY_LAPTOP): Promise<Record<string, string[]>> {
+  const meta = await getCategoryAspectMeta(categoryId);
+  return meta.options;
+}
+
+export async function getCategoryAspectMeta(categoryId: string = EBAY_CATEGORY_LAPTOP): Promise<CategoryAspectMeta> {
   const cached = _categorySpecCache[categoryId];
   if (cached && (Date.now() - cached.fetchedAt) < CACHE_TTL_MS) return cached.value;
 
@@ -15,17 +25,20 @@ export async function getCategorySpecificOptions(categoryId: string = EBAY_CATEG
   if (!result.ok) {
     result = await callUploadApi(`/api/category-specifics/${categoryId}`, { method: 'GET', timeout: 25 });
   }
-  if (!result.ok) return cached?.value ?? {};
+  if (!result.ok) return cached?.value ?? { options: {}, multiValueNames: new Set() };
 
   const data = result.data ?? {};
   const options: Record<string, string[]> = {};
+  const multiValueNames = new Set<string>();
   // Taxonomy API uses 'name', Trading API also uses 'name' — both have 'values' array
-  for (const aspect of (data.aspects as Array<{ name: string; values: string[] }>) ?? []) {
+  for (const aspect of (data.aspects as Array<{ name: string; values: string[]; multiValue?: boolean }>) ?? []) {
     const name = aspect.name?.trim();
     if (!name) continue;
     options[name] = (aspect.values ?? []).map(v => String(v).trim()).filter(Boolean);
+    if (aspect.multiValue) multiValueNames.add(name);
   }
 
-  _categorySpecCache[categoryId] = { fetchedAt: Date.now(), value: options };
-  return options;
+  const meta: CategoryAspectMeta = { options, multiValueNames };
+  _categorySpecCache[categoryId] = { fetchedAt: Date.now(), value: meta };
+  return meta;
 }
