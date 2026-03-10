@@ -5,16 +5,18 @@ import { cleanProcessorString } from './value-matcher.js';
 
 import type { OdooProduct, OdooImage } from '@ld/odoo-sdk';
 import { xmlEscape } from '@ld/ebay-client';
-import type { ListingData, ItemSpecific } from './normalizer.js';
+import type { ListingData } from './normalizer.js';
+import type { LegacyItemSpecific } from './normalizer.js';
+import { EBAY_CONDITIONS } from '@ld/catalog';
 
 // ── Constants ────────────────────────────────────────────────────────
 
 export const EBAY_CATEGORY_LAPTOP = '177';
 
-export const EBAY_CONDITION_USED = '3000';
-export const EBAY_CONDITION_REFURBISHED_SELLER = '2500';
-export const EBAY_CONDITION_REFURBISHED_CERTIFIED = '2000';
-export const EBAY_CONDITION_NEW = '1000';
+export const EBAY_CONDITION_USED = String(EBAY_CONDITIONS.used);
+export const EBAY_CONDITION_REFURBISHED_SELLER = String(EBAY_CONDITIONS.seller_refurbished);
+export const EBAY_CONDITION_REFURBISHED_CERTIFIED = String(EBAY_CONDITIONS.certified_refurbished);
+export const EBAY_CONDITION_NEW = String(EBAY_CONDITIONS.new);
 
 export const STORAGE_TYPE_DISPLAY: Record<string, string> = {
   nvme: 'NVMe (Non-Volatile Memory Express)',
@@ -108,8 +110,8 @@ function buildTitle(product: OdooProduct): string {
 
 // ── Item Specifics Builder ──────────────────────────────────────────
 
-function buildItemSpecifics(product: OdooProduct): ItemSpecific[] {
-  const specifics: ItemSpecific[] = [];
+function buildItemSpecifics(product: OdooProduct): LegacyItemSpecific[] {
+  const specifics: LegacyItemSpecific[] = [];
   const add = (name: string, value: string | null) => {
     if (value) specifics.push({ Name: name, Value: value });
   };
