@@ -52,8 +52,7 @@ pnpm build
 
 ## Activity
 
-<!-- TODO: Go to https://repobeats.axiom.co, authorize this repo, and paste the embed below -->
-<!-- ![Alt](https://repobeats.axiom.co/api/embed/YOUR_HASH_HERE.svg "Repobeats analytics image") -->
+![Alt](https://repobeats.axiom.co/api/embed/2e74c8b059ca4796014a8cd9930fda8758fc128a.svg "Repobeats analytics image")
 
 <p align="center">
   <img src="https://img.shields.io/github/contributors/skylordafk/listing-dashboard?style=flat-square" />
