@@ -171,7 +171,8 @@ function listingDataFromSavedOnly(
   data.condition_description ??= '';
   data.description_html ??= '';
   data.item_specifics ??= [];
-  return finalizeListingData(data);
+  const ebayConfig = loadEbayAppConfig();
+  return finalizeListingData(data, undefined, ebayConfig.default_condition_description);
 }
 
 // ── Description Sanitization ────────────────────────────────────────
@@ -397,9 +398,10 @@ app.get<{ Params: { productId: string } }>('/products/:productId/preview', async
     const { existing, savedData } = getExistingListing(productId);
     let listingData = mergeSavedListingData(productToListing(product, images), savedData);
 
+    const ebayConfig = loadEbayAppConfig();
     const categoryId = String(listingData.category_id ?? EBAY_CATEGORY_LAPTOP);
     const specificOptions = await getCategorySpecificOptions(categoryId);
-    listingData = finalizeListingData(listingData, specificOptions);
+    listingData = finalizeListingData(listingData, specificOptions, ebayConfig.default_condition_description);
     listingData = sanitizeListingHtml(listingData);
     const qualityWarnings = listingQualityWarnings(listingData);
 
@@ -505,9 +507,9 @@ app.post<{ Params: { productId: string } }>('/products/:productId/edit', async (
     const images = await getProductImages(odoo, productId);
     const { existing, savedData } = getExistingListing(productId);
     let listingData = mergeSavedListingData(productToListing(product, images), savedData);
-    listingData = finalizeListingData(listingData);
-
     const ebayConfig = loadEbayAppConfig();
+    listingData = finalizeListingData(listingData, undefined, ebayConfig.default_condition_description);
+
     const categoryId = String((req.body as Record<string, string>).category_id ?? listingData.category_id ?? EBAY_CATEGORY_LAPTOP);
     const categoryOptions = await getCategorySpecificOptions(categoryId);
     listingData = applyListingFormOverrides(
@@ -545,7 +547,6 @@ app.post<{ Params: { productId: string } }>('/products/:productId/save-changes',
         if (product) {
           const images = await getProductImages(odoo, productId);
           listingData = mergeSavedListingData(productToListing(product, images), savedData);
-          listingData = finalizeListingData(listingData);
         }
       } catch (err) {
         console.warn(`save-changes: Odoo fetch failed for product ${productId}:`, err);
@@ -558,6 +559,7 @@ app.post<{ Params: { productId: string } }>('/products/:productId/save-changes',
     }
 
     const ebayConfig = loadEbayAppConfig();
+    listingData = finalizeListingData(listingData, undefined, ebayConfig.default_condition_description);
     const categoryId = String((req.body as Record<string, string>).category_id ?? listingData.category_id ?? EBAY_CATEGORY_LAPTOP);
     const categoryOptions = await getCategorySpecificOptions(categoryId);
     listingData = applyListingFormOverrides(
@@ -605,7 +607,6 @@ app.post<{ Params: { productId: string } }>('/products/:productId/revise-ebay', 
         if (product) {
           const images = await getProductImages(odoo, productId);
           listingData = mergeSavedListingData(productToListing(product, images), savedData);
-          listingData = finalizeListingData(listingData);
         }
       } catch (err) {
         console.warn(`revise-ebay: Odoo fetch failed for product ${productId}:`, err);
@@ -618,6 +619,7 @@ app.post<{ Params: { productId: string } }>('/products/:productId/revise-ebay', 
     }
 
     const ebayConfig = loadEbayAppConfig();
+    listingData = finalizeListingData(listingData, undefined, ebayConfig.default_condition_description);
     const categoryId = String((req.body as Record<string, string>).category_id ?? listingData.category_id ?? EBAY_CATEGORY_LAPTOP);
     const categoryOptions = await getCategorySpecificOptions(categoryId);
     listingData = applyListingFormOverrides(
