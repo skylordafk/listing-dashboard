@@ -14,6 +14,9 @@ config/upload-api.key
 *.db-wal
 .env
 
+# Internal docs
+docs/INTEGRATION.md
+
 # Agent artifacts
 .agents/
 .claude/
