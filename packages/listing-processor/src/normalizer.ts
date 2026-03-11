@@ -9,6 +9,7 @@ import {
   findSpecValueByAspectName,
   NAME_ALIAS_GROUPS,
 } from './value-matcher.js';
+import { RAM_VALUES, STORAGE_TYPE_VALUES, GRAPHICS_TYPE_VALUES, TYPE_VALUES } from './spec-values.js';
 
 // ── Constants ────────────────────────────────────────────────────────
 
@@ -49,36 +50,6 @@ export const SPECIFIC_NAME_SYNONYMS: Record<string, string> = {
   'operating system edition': 'Operating System',
 };
 
-export const CANONICAL_RAM_VALUES: Record<string, string> = {
-  '4gb': '4 GB', '8gb': '8 GB', '16gb': '16 GB', '24gb': '24 GB',
-  '32gb': '32 GB', '64gb': '64 GB', '128gb': '128 GB',
-};
-
-export const CANONICAL_STORAGE_TYPE_VALUES: Record<string, string> = {
-  'ssd': 'SSD', 'nvme': 'NVMe', 'nvme ssd': 'NVMe',
-  'nvme (non-volatile memory express)': 'NVMe',
-  'hdd': 'HDD', 'hdd (hard disk drive)': 'HDD',
-  'emmc': 'eMMC', 'hdd+ssd': 'HDD + SSD', 'hdd + ssd': 'HDD + SSD',
-  'sshd': 'SSHD', 'ssd (solid state drive)': 'SSD',
-  'sshd (solid state hybrid drive)': 'SSHD',
-};
-
-export const CANONICAL_GRAPHICS_TYPE_VALUES: Record<string, string> = {
-  'integrated': 'Integrated/On-Board Graphics',
-  'integrated/on-board graphics': 'Integrated/On-Board Graphics',
-  'dedicated': 'Dedicated/Discrete Graphics',
-  'dedicated/discrete': 'Dedicated/Discrete Graphics',
-  'dedicated/discrete graphics': 'Dedicated/Discrete Graphics',
-};
-
-export const CANONICAL_TYPE_VALUES: Record<string, string> = {
-  'notebook': 'Notebook/Laptop',
-  'laptop': 'Notebook/Laptop',
-  'notebook/laptop': 'Notebook/Laptop',
-  '2 in 1 laptop': '2-in-1 Laptop/Tablet',
-  '2-in-1': '2-in-1 Laptop/Tablet',
-  'convertible': '2-in-1 Laptop/Tablet',
-};
 
 export const CANONICAL_OS_VALUES: Record<string, string> = {
   'none': 'Not Included', 'no os': 'Not Included', 'not included': 'Not Included',
@@ -163,7 +134,7 @@ export function normalizeSpecificValue(
 
   if (name === 'RAM Size') {
     const compact = low.replace(/ /g, '');
-    if (compact in CANONICAL_RAM_VALUES) return CANONICAL_RAM_VALUES[compact]!;
+    if (compact in RAM_VALUES) return RAM_VALUES[compact]!;
     const m = low.match(/(\d+)\s*gb/);
     if (m) return `${m[1]} GB`;
   }
@@ -179,9 +150,9 @@ export function normalizeSpecificValue(
     }
   }
 
-  if (name === 'Storage Type') return CANONICAL_STORAGE_TYPE_VALUES[low] ?? v;
-  if (name === 'Graphics Processing Type') return CANONICAL_GRAPHICS_TYPE_VALUES[low] ?? v;
-  if (name === 'Type') return CANONICAL_TYPE_VALUES[low] ?? v;
+  if (name === 'Storage Type') return STORAGE_TYPE_VALUES[low] ?? v;
+  if (name === 'Graphics Processing Type') return GRAPHICS_TYPE_VALUES[low] ?? v;
+  if (name === 'Type') return TYPE_VALUES[low] ?? v;
   if (name === 'Operating System') return CANONICAL_OS_VALUES[low] ?? v;
 
   if (name === 'Screen Size') {
