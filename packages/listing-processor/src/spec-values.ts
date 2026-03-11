@@ -12,19 +12,19 @@ export const RAM_VALUES: Record<string, string> = {
 // ── Storage Type ────────────────────────────────────────────────────
 // Normalizer keys: lowercase eBay-style strings.
 export const STORAGE_TYPE_VALUES: Record<string, string> = {
-  'ssd': 'SSD (Solid State Drive)',
-  'nvme': 'NVMe (Non-Volatile Memory Express)',
-  'nvme ssd': 'NVMe (Non-Volatile Memory Express)',
-  'nvme (non-volatile memory express)': 'NVMe (Non-Volatile Memory Express)',
-  'hdd': 'HDD (Hard Disk Drive)',
-  'hdd (hard disk drive)': 'HDD (Hard Disk Drive)',
+  'ssd': 'SSD',
+  'nvme': 'NVMe',
+  'nvme ssd': 'NVMe',
+  'nvme (non-volatile memory express)': 'NVMe',
+  'hdd': 'HDD',
+  'hdd (hard disk drive)': 'HDD',
   'emmc': 'eMMC',
   'hdd+ssd': 'HDD + SSD',
   'hdd + ssd': 'HDD + SSD',
   'hdd_ssd': 'HDD + SSD',
-  'sshd': 'SSHD (Solid State Hybrid Drive)',
-  'ssd (solid state drive)': 'SSD (Solid State Drive)',
-  'sshd (solid state hybrid drive)': 'SSHD (Solid State Hybrid Drive)',
+  'sshd': 'SSHD',
+  'ssd (solid state drive)': 'SSD',
+  'sshd (solid state hybrid drive)': 'SSHD',
 };
 
 // ── Graphics Processing Type ────────────────────────────────────────
