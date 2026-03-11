@@ -1,5 +1,5 @@
 import type Database from 'better-sqlite3';
-import { OdooClient, getAttachmentsWithData } from '@ld/odoo-sdk';
+import { OdooClient, getAttachmentsWithData, type AttachmentWithData } from '@ld/odoo-sdk';
 import { EbayClient, EbayApiError, EbayAuthError } from '@ld/ebay-client';
 import type { ListingData } from '@ld/ebay-client';
 import {
@@ -7,6 +7,25 @@ import {
   type ListingRow,
 } from '../db.js';
 import { ebayErrorResponse } from './ebay-errors.js';
+
+async function uploadImages(
+  ebay: EbayClient,
+  attachments: AttachmentWithData[],
+  onError: (err: Error) => void,
+  onSuccess?: (url: string) => void,
+): Promise<string[]> {
+  const urls: string[] = [];
+  for (const att of attachments) {
+    try {
+      const url = await ebay.uploadPicture(att.datas, att.name ?? 'photo.jpg');
+      urls.push(url);
+      onSuccess?.(url);
+    } catch (err) {
+      onError(err as Error);
+    }
+  }
+  return urls;
+}
 
 export async function uploadListing(
   db: Database.Database,
@@ -37,16 +56,12 @@ export async function uploadListing(
 
     // Step 3: Upload images to eBay
     const ebay = new EbayClient();
-    const imageUrls: string[] = [];
-    for (const att of attachments) {
-      try {
-        const url = await ebay.uploadPicture(att.datas, att.name ?? 'photo.jpg');
-        imageUrls.push(url);
-        logUpload(db, listingId, 'upload_picture', 'success');
-      } catch (err) {
-        logUpload(db, listingId, 'upload_picture', 'failure', (err as Error).message);
-      }
-    }
+    const imageUrls = await uploadImages(
+      ebay,
+      attachments,
+      (err) => logUpload(db, listingId, 'upload_picture', 'failure', err.message),
+      () => logUpload(db, listingId, 'upload_picture', 'success'),
+    );
 
     if (imageUrls.length === 0 && attachments.length > 0) {
       const errMsg = 'All image uploads failed — no images available for listing';
@@ -122,15 +137,11 @@ export async function verifyListing(
     const attachments = await getAttachmentsWithData(odoo, productId);
 
     const ebay = new EbayClient();
-    const imageUrls: string[] = [];
-    for (const att of attachments) {
-      try {
-        const url = await ebay.uploadPicture(att.datas, att.name ?? 'photo.jpg');
-        imageUrls.push(url);
-      } catch (err) {
-        console.warn('Failed to upload image:', (err as Error).message);
-      }
-    }
+    const imageUrls = await uploadImages(
+      ebay,
+      attachments,
+      (err) => console.warn('Failed to upload image:', err.message),
+    );
 
     if (imageUrls.length === 0 && attachments.length > 0) {
       return {
