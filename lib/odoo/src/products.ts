@@ -4,10 +4,6 @@ import { OdooClient, SearchReadOptions } from './client.js';
 import {
   OdooProduct,
   DEFAULT_PRODUCT_FIELDS,
-  DeviceWritableFields,
-  PhotoWritableFields,
-  ListingWritableFields,
-  EbayWritableFields,
 } from './schema.js';
 
 type OdooDomain = Array<[string, string, unknown] | '|' | '&' | '!'>;
@@ -64,26 +60,6 @@ export async function countProducts(
   domain: OdooDomain = [],
 ): Promise<number> {
   return client.searchCount('product.product', domain);
-}
-
-// ── Write Operations (permission-bounded) ───────────────────────────
-
-/** Update a product with device-sourced data. */
-export async function writeDeviceFields(
-  client: OdooClient,
-  id: number,
-  values: Partial<DeviceWritableFields>,
-): Promise<boolean> {
-  return client.write('product.product', [id], values);
-}
-
-/** Update a product with listing/condition data. */
-export async function writeListingFields(
-  client: OdooClient,
-  id: number,
-  values: Partial<ListingWritableFields>,
-): Promise<boolean> {
-  return client.write('product.product', [id], values);
 }
 
 // ── Attachment Operations ────────────────────────────────────────────
@@ -209,18 +185,6 @@ export function isReadyToList(product: OdooProduct, imageCount?: number): boolea
     product.x_condition &&
     (imageCount === undefined || imageCount > 0)
   );
-}
-
-// ── eBay Performance Write Operations ────────────────────────────────
-
-
-/** Update a product with eBay performance data. */
-export async function writeEbayFields(
-  client: OdooClient,
-  id: number,
-  values: Partial<EbayWritableFields>,
-): Promise<boolean> {
-  return client.write('product.product', [id], values);
 }
 
 /** Get a product by its eBay Item ID. */

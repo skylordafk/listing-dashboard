@@ -166,37 +166,3 @@ export const DEFAULT_PRODUCT_FIELDS = [
   ...CUSTOM_FIELDS,
 ] as const;
 
-// ── Permission Boundaries ──────────────────────────────────────────────
-
-/** Fields the Device API is allowed to write. */
-export type DeviceWritableFields = Pick<OdooProduct,
-  | 'x_brand' | 'x_model_name' | 'x_series' | 'x_laptop_type'
-  | 'x_processor' | 'x_processor_speed'
-  | 'x_ram_size' | 'x_storage_capacity' | 'x_storage_type'
-  | 'x_gpu' | 'x_graphics_type'
-  | 'x_screen_size' | 'x_max_resolution'
-  | 'x_has_touchscreen' | 'x_has_backlit_keyboard' | 'x_has_fingerprint'
-  | 'x_connectivity' | 'x_port_inventory' | 'x_webcam_resolution'
-  | 'x_operating_system' | 'x_release_year'
-  | 'x_battery_health' | 'x_battery_cycles'
-  | 'x_test_battery' | 'x_test_bluetooth' | 'x_test_display'
-  | 'x_test_keyboard' | 'x_test_microphone' | 'x_test_ports'
-  | 'x_test_speakers' | 'x_test_touchpad' | 'x_test_webcam' | 'x_test_wifi'
->;
-
-/** Fields the Photo API is allowed to write (none — it only creates attachments). */
-export type PhotoWritableFields = Record<string, never>;
-
-
-/** Fields the eBay Performance Agent is allowed to write. */
-export type EbayWritableFields = Pick<OdooProduct,
-  | 'x_ebay_item_id' | 'x_ebay_status'
-  | 'x_ebay_listed_date' | 'x_ebay_sold_date' | 'x_ebay_sold_price'
-  | 'x_ebay_watchers' | 'x_ebay_views' | 'x_ebay_impressions' | 'x_ebay_ctr'
-  | 'x_ebay_fees' | 'x_ebay_ad_spend' | 'x_ebay_days_to_sell'
->;
-/** Fields the Listing Processor is allowed to write. */
-export type ListingWritableFields = Pick<OdooProduct,
-  | 'x_condition' | 'x_cosmetic_notes' | 'x_functional_notes'
-  | 'x_color' | 'x_features'
->;
