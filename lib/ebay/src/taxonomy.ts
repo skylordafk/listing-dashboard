@@ -6,26 +6,13 @@ import type { EbayConfig } from './types.js';
 
 // ── Types ───────────────────────────────────────────────────────────
 
-export interface CategorySuggestion {
-  categoryId: string;
-  categoryName: string;
-  breadcrumb: string[];  // root → leaf
-  level: number;
-}
+// Re-export shared taxonomy types from @ld/catalog (single source of truth)
+export type { CategorySuggestion, TaxonomyAspect } from '@ld/catalog';
+import type { CategorySuggestion, TaxonomyAspect } from '@ld/catalog';
 
 export interface CategorySuggestionsResult {
   categoryTreeId: string;
   suggestions: CategorySuggestion[];
-}
-
-export interface TaxonomyAspect {
-  name: string;
-  required: boolean;
-  usage: string;          // RECOMMENDED | OPTIONAL
-  dataType: string;       // STRING | NUMBER | DATE
-  mode: string;           // FREE_TEXT | SELECTION_ONLY
-  multiValue: boolean;
-  values: string[];
 }
 
 export interface ItemAspectsResult {

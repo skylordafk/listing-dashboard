@@ -1,12 +1,10 @@
 // Product operations — typed CRUD for product.product
 
-import { OdooClient, SearchReadOptions } from './client.js';
+import { OdooClient, SearchReadOptions, OdooDomain } from './client.js';
 import {
   OdooProduct,
   DEFAULT_PRODUCT_FIELDS,
 } from './schema.js';
-
-type OdooDomain = Array<[string, string, unknown] | '|' | '&' | '!'>;
 
 // ── Read Operations ─────────────────────────────────────────────────
 

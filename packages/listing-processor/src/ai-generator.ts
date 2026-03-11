@@ -9,7 +9,7 @@ import {
   DEFAULT_CONDITION_NOTES, DEFAULT_SHIPPING_INFO, DEFAULT_RETURNS_POLICY,
   type AiConfig,
 } from './config.js';
-import { cleanText, truncateReadable } from './normalizer.js';
+import { cleanText, truncateReadable, sanitizeDescriptionHtml } from './normalizer.js';
 // ── Category Context ────────────────────────────────────────────────
 
 export interface CategoryContext {
@@ -106,15 +106,6 @@ function normalizeGeneratedTitle(title: string): string {
   return t ? truncateReadable(t, 80) : '';
 }
 
-function sanitizeGeneratedDescription(html: string): string {
-  let text = (html ?? '').replace(/\x00/g, '');
-  if (!text) return '';
-  text = text.replace(/<script\b[^>]*>.*?<\/script>/gis, '');
-  text = text.replace(/<style\b[^>]*>.*?<\/style>/gis, '');
-  text = text.replace(/\son\w+\s*=\s*(["']).*?\1/gis, '');
-  text = text.replace(/\s(href|src)\s*=\s*(["'])\s*javascript:[^"']*\2/gis, '');
-  return text.trim();
-}
 
 function stripHtml(text: string): string {
   return (text ?? '').replace(/<[^>]+>/gi, ' ').trim();
@@ -824,7 +815,7 @@ function parseDescriptionResponse(
       const parsed = JSON.parse(content);
       const htmlContent = parsed.html ?? '';
       const highlights = parsed.highlights ?? [];
-      const cleaned = sanitizeGeneratedDescription(htmlContent);
+      const cleaned = sanitizeDescriptionHtml(htmlContent);
       const visible = stripHtml(cleaned);
       if (visible.length < 220 || !cleaned.toLowerCase().includes('<table')) {
         return buildDescriptionFallback(product, condNotes, shipInfo, retPolicy, highlights);
@@ -833,7 +824,7 @@ function parseDescriptionResponse(
     }
 
     content = stripCodeBlock(content);
-    const cleaned = sanitizeGeneratedDescription(content);
+    const cleaned = sanitizeDescriptionHtml(content);
     const visible = stripHtml(cleaned);
     if (visible.length < 220 || !cleaned.toLowerCase().includes('<table')) {
       return buildDescriptionFallback(product, condNotes, shipInfo, retPolicy);
@@ -841,7 +832,7 @@ function parseDescriptionResponse(
     return cleaned;
   } catch {
     content = stripCodeBlock(content);
-    const cleaned = sanitizeGeneratedDescription(content);
+    const cleaned = sanitizeDescriptionHtml(content);
     const visible = stripHtml(cleaned);
     if (visible.length < 220 || !cleaned.toLowerCase().includes('<table')) {
       return buildDescriptionFallback(product, condNotes, shipInfo, retPolicy);

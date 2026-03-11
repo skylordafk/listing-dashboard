@@ -15,7 +15,7 @@ export interface SearchReadOptions {
   order?: string;
 }
 
-type OdooDomain = Array<[string, string, unknown] | '|' | '&' | '!'>;
+export type OdooDomain = Array<[string, string, unknown] | '|' | '&' | '!'>;
 
 interface JsonRpcResponse<T = unknown> {
   jsonrpc: '2.0';
