@@ -224,15 +224,9 @@ export function sanitizeDescriptionHtml(html: string): string {
 // Re-export the catalog's canonical ItemSpecific type
 export type { ItemSpecific } from '@ld/catalog';
 
-/**
- * Legacy item-specific shape used throughout listing-dashboard.
- * Capital-letter keys (Name/Value) match the eBay Trading API XML format.
- * Phase 2 will migrate consumers to the catalog's lowercase shape.
- */
-export interface LegacyItemSpecific {
-  Name: string;
-  Value: string;
-}
+// Re-export the legacy shape from @ld/ebay-client (single source of truth)
+import type { LegacyItemSpecific } from '@ld/ebay-client';
+export type { LegacyItemSpecific } from '@ld/ebay-client';
 
 export function normalizeItemSpecifics(
   itemSpecifics: unknown[],
