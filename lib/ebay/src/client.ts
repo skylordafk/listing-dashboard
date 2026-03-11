@@ -7,7 +7,6 @@ import type {
   ReviseItemResult, TestConnectionResult, CategorySpecificsResult,
   CategoryAspect, Fee, ApiWarning,
 } from './types.js';
-import type { OdooImage } from '@ld/odoo-sdk';
 
 const EBAY_NS = 'urn:ebay:apis:eBLBaseComponents';
 const AUTH_ERROR_CODES = new Set(['931', '930', '17', '215']);
@@ -37,23 +36,9 @@ export class EbayClient {
     };
   }
 
-  // ── Core request ────────────────────────────────────────────────────
+  // ── XML response parsing ────────────────────────────────────────────
 
-  private async makeRequest(callName: string, requestXml: string): Promise<Record<string, unknown>> {
-    const headers = this.buildHeaders(callName);
-    const response = await fetch(this.config.apiUrl, {
-      method: 'POST',
-      headers,
-      body: requestXml,
-      signal: AbortSignal.timeout(60_000),
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      throw new EbayApiError(`HTTP ${response.status}: ${text.slice(0, 500)}`);
-    }
-
-    const xml = await response.text();
+  private parseResponse(xml: string, callName: string, allowPartialFailure = false): Record<string, unknown> {
     const root = parseXml(xml);
 
     // Find the response envelope (e.g., AddItemResponse, GetUserResponse)
@@ -79,11 +64,35 @@ export class EbayClient {
       if (ack === 'Failure') {
         throw new EbayApiError(errorMessages.join('; '));
       }
-      // PartialFailure: log but continue
-      console.warn('eBay PartialFailure:', errorMessages.join('; '));
+      // PartialFailure
+      if (allowPartialFailure) {
+        console.warn('eBay PartialFailure:', errorMessages.join('; '));
+      } else {
+        throw new EbayApiError(errorMessages.join('; '));
+      }
     }
 
     return envelope;
+  }
+
+  // ── Core request ────────────────────────────────────────────────────
+
+  private async makeRequest(callName: string, requestXml: string): Promise<Record<string, unknown>> {
+    const headers = this.buildHeaders(callName);
+    const response = await fetch(this.config.apiUrl, {
+      method: 'POST',
+      headers,
+      body: requestXml,
+      signal: AbortSignal.timeout(60_000),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new EbayApiError(`HTTP ${response.status}: ${text.slice(0, 500)}`);
+    }
+
+    const xml = await response.text();
+    return this.parseResponse(xml, callName, /* allowPartialFailure */ true);
   }
 
   // ── Test connection ─────────────────────────────────────────────────
@@ -135,44 +144,12 @@ export class EbayClient {
     }
 
     const xml = await response.text();
-    const root = parseXml(xml);
-    const responseKey = Object.keys(root).find(k => k.endsWith('Response'));
-    const envelope = (responseKey ? root[responseKey] : root) as Record<string, unknown>;
-
-    const ack = String(xmlGet(envelope, 'Ack') ?? '');
-    if (ack === 'Failure' || ack === 'PartialFailure') {
-      const errors = xmlFindAll(envelope, 'Errors') as Record<string, unknown>[];
-      const msgs: string[] = [];
-      for (const error of errors) {
-        const code = String(error.ErrorCode ?? 'unknown');
-        const msg = String(error.LongMessage ?? 'Unknown error');
-        if (AUTH_ERROR_CODES.has(code)) {
-          throw new EbayAuthError(`OAuth token invalid/expired (code ${code}): ${msg}`);
-        }
-        msgs.push(`[${code}] ${msg}`);
-      }
-      throw new EbayApiError(msgs.join('; '));
-    }
+    const envelope = this.parseResponse(xml, 'UploadSiteHostedPictures');
 
     const url = xmlGet(envelope, 'SiteHostedPictureDetails.FullURL');
     if (!url) throw new EbayApiError('No picture URL in UploadSiteHostedPictures response');
 
     return String(url);
-  }
-
-  async uploadPictures(images: OdooImage[]): Promise<string[]> {
-    const results = await Promise.allSettled(
-      images.map(img => this.uploadPicture(img.datas, img.name ?? 'photo.jpg'))
-    );
-    const urls: string[] = [];
-    for (const result of results) {
-      if (result.status === 'fulfilled') {
-        urls.push(result.value);
-      } else {
-        console.warn('Image upload failed:', result.reason);
-      }
-    }
-    return urls;
   }
 
   // ── Listing XML builder ──────────────────────────────────────────────
