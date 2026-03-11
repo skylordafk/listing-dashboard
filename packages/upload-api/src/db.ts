@@ -216,6 +216,28 @@ export function getCachedCategorySpecifics(
   ).get(categoryId, siteId) as CacheRow | undefined;
 }
 
+const DEFAULT_TTL_MS = 86_400_000; // 24 hours
+
+/** Return parsed cache payload if the entry exists and is within TTL, else undefined. */
+export function getFreshCache(
+  db: Database.Database,
+  categoryId: string,
+  siteId: string,
+  ttlMs: number = DEFAULT_TTL_MS,
+): (Record<string, unknown> & { cached: true; fetched_at: string }) | undefined {
+  const cached = getCachedCategorySpecifics(db, categoryId, siteId);
+  if (!cached?.fetched_at) return undefined;
+  try {
+    const fetchedAt = new Date(cached.fetched_at.replace('Z', '+00:00'));
+    const ageMs = Date.now() - fetchedAt.getTime();
+    if (ageMs < ttlMs) {
+      const payload = JSON.parse(cached.payload_json);
+      return { ...payload, cached: true, fetched_at: cached.fetched_at };
+    }
+  } catch { /* stale/corrupt cache, refetch */ }
+  return undefined;
+}
+
 export function setCachedCategorySpecifics(
   db: Database.Database,
   categoryId: string,

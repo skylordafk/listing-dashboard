@@ -1,6 +1,6 @@
 import type Database from 'better-sqlite3';
 import { OdooClient, getAttachmentsWithData, type AttachmentWithData } from '@ld/odoo-sdk';
-import { EbayClient, EbayApiError, EbayAuthError } from '@ld/ebay-client';
+import { EbayClient } from '@ld/ebay-client';
 import type { ListingData } from '@ld/ebay-client';
 import {
   updateListingStatus, logUpload,
@@ -106,21 +106,9 @@ export async function uploadListing(
       code: 200,
     };
   } catch (err) {
-    const errorMsg = (err instanceof EbayAuthError || err instanceof EbayApiError)
-      ? `eBay ${err instanceof EbayAuthError ? 'auth' : 'API'} error: ${err.message}`
-      : `Unexpected error: ${(err as Error).message}`;
-    logUpload(db, listingId, 'add_item', 'failure', errorMsg);
-    updateListingStatus(db, listingId, 'failed', { error_message: errorMsg });
-
-    return {
-      body: {
-        status: 'error',
-        listing_id: listingId,
-        error: errorMsg,
-        ...(err instanceof EbayAuthError ? { type: 'auth' } : {}),
-      },
-      code: err instanceof EbayAuthError ? 401 : err instanceof EbayApiError ? 502 : 500,
-    };
+    const { body, code } = ebayErrorResponse(db, err, listingId, 'add_item');
+    updateListingStatus(db, listingId, 'failed', { error_message: (body as Record<string, unknown>).error as string });
+    return { body: body as Record<string, unknown>, code };
   }
 }
 
