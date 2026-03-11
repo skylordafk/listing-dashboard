@@ -2,6 +2,7 @@
 // Port of ebay_field_mapper.py.
 
 import { cleanProcessorString } from './value-matcher.js';
+import { RAM_VALUES, STORAGE_TYPE_VALUES, GRAPHICS_TYPE_VALUES, TYPE_VALUES } from './spec-values.js';
 
 import type { OdooProduct, OdooImage } from '@ld/odoo-sdk';
 import { xmlEscape } from '@ld/ebay-client';
@@ -18,30 +19,6 @@ export const EBAY_CONDITION_REFURBISHED_SELLER = String(EBAY_CONDITIONS.seller_r
 export const EBAY_CONDITION_REFURBISHED_CERTIFIED = String(EBAY_CONDITIONS.certified_refurbished);
 export const EBAY_CONDITION_NEW = String(EBAY_CONDITIONS.new);
 
-export const STORAGE_TYPE_DISPLAY: Record<string, string> = {
-  nvme: 'NVMe (Non-Volatile Memory Express)',
-  ssd: 'SSD (Solid State Drive)',
-  hdd: 'HDD (Hard Disk Drive)',
-  hdd_ssd: 'HDD + SSD',
-  emmc: 'eMMC',
-  sshd: 'SSHD (Solid State Hybrid Drive)',
-};
-
-export const RAM_DISPLAY: Record<string, string> = {
-  '1gb': '1 GB', '2gb': '2 GB', '4gb': '4 GB',
-  '8gb': '8 GB', '16gb': '16 GB', '24gb': '24 GB',
-  '32gb': '32 GB', '64gb': '64 GB', '128gb': '128 GB',
-};
-
-export const GRAPHICS_TYPE_DISPLAY: Record<string, string> = {
-  integrated: 'Integrated/On-Board Graphics',
-  dedicated: 'Dedicated/Discrete',
-};
-
-export const LAPTOP_TYPE_DISPLAY: Record<string, string> = {
-  notebook: 'Notebook/Laptop',
-  convertible: '2 in 1 Laptop',
-};
 
 // ── Field Accessor ──────────────────────────────────────────────────
 
@@ -83,7 +60,7 @@ function buildTitle(product: OdooProduct): string {
   if (processor) parts.push(shortenProcessor(processor));
 
   const ram = getField(product, 'x_ram_size');
-  if (ram) parts.push(RAM_DISPLAY[ram] ?? ram.toUpperCase());
+  if (ram) parts.push(RAM_VALUES[ram] ?? ram.toUpperCase());
 
   const storage = getField(product, 'x_storage_capacity');
   const storageType = getField(product, 'x_storage_type');
@@ -143,7 +120,7 @@ function buildItemSpecifics(product: OdooProduct): LegacyItemSpecific[] {
   add('Processor Speed', getField(product, 'x_processor_speed'));
 
   const ram = getField(product, 'x_ram_size');
-  if (ram) add('RAM Size', RAM_DISPLAY[ram] ?? ram.toUpperCase());
+  if (ram) add('RAM Size', RAM_VALUES[ram] ?? ram.toUpperCase());
 
   const storageCapacity = getField(product, 'x_storage_capacity');
   const storageType = getField(product, 'x_storage_type');
@@ -155,12 +132,12 @@ function buildItemSpecifics(product: OdooProduct): LegacyItemSpecific[] {
     if (isSsd) add('SSD Capacity', storageCapacity);
   }
 
-  if (storageType) add('Storage Type', STORAGE_TYPE_DISPLAY[storageType] ?? storageType);
+  if (storageType) add('Storage Type', STORAGE_TYPE_VALUES[storageType] ?? storageType);
 
   add('GPU', getField(product, 'x_gpu'));
 
   const graphicsType = getField(product, 'x_graphics_type');
-  if (graphicsType) add('Graphics Processing Type', GRAPHICS_TYPE_DISPLAY[graphicsType] ?? graphicsType);
+  if (graphicsType) add('Graphics Processing Type', GRAPHICS_TYPE_VALUES[graphicsType] ?? graphicsType);
 
   add('Screen Size', getField(product, 'x_screen_size'));
   add('Maximum Resolution', getField(product, 'x_max_resolution'));
@@ -182,7 +159,7 @@ function buildItemSpecifics(product: OdooProduct): LegacyItemSpecific[] {
   }
 
   const laptopType = getField(product, 'x_laptop_type');
-  if (laptopType) add('Type', LAPTOP_TYPE_DISPLAY[laptopType] ?? laptopType);
+  if (laptopType) add('Type', TYPE_VALUES[laptopType] ?? laptopType);
 
   add('Operating System', getField(product, 'x_operating_system'));
   add('Color', getField(product, 'x_color'));
@@ -202,13 +179,13 @@ function buildDescription(product: OdooProduct): string {
   const processor = xmlEscape(getField(product, 'x_processor') ?? 'N/A');
   const speed = xmlEscape(getField(product, 'x_processor_speed') ?? '');
   const ram = getField(product, 'x_ram_size');
-  const ramDisplay = ram ? (RAM_DISPLAY[ram] ?? ram.toUpperCase()) : 'N/A';
+  const ramDisplay = ram ? (RAM_VALUES[ram] ?? ram.toUpperCase()) : 'N/A';
   const storage = xmlEscape(getField(product, 'x_storage_capacity') ?? 'N/A');
   const storageType = getField(product, 'x_storage_type');
-  const storageTypeDisplay = storageType ? (STORAGE_TYPE_DISPLAY[storageType] ?? '') : '';
+  const storageTypeDisplay = storageType ? (STORAGE_TYPE_VALUES[storageType] ?? '') : '';
   const gpu = xmlEscape(getField(product, 'x_gpu') ?? 'N/A');
   const graphicsType = getField(product, 'x_graphics_type');
-  const graphicsDisplay = graphicsType ? (GRAPHICS_TYPE_DISPLAY[graphicsType] ?? '') : '';
+  const graphicsDisplay = graphicsType ? (GRAPHICS_TYPE_VALUES[graphicsType] ?? '') : '';
   const screen = xmlEscape(getField(product, 'x_screen_size') ?? 'N/A');
   const resolution = xmlEscape(getField(product, 'x_max_resolution') ?? 'N/A');
   const connectivity = xmlEscape(getField(product, 'x_connectivity') ?? 'N/A');
