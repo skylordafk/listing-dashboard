@@ -2,7 +2,8 @@ import Database from 'better-sqlite3';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { createHash } from 'node:crypto';
-import { applySchema } from '@ld/db';
+import { applySchema, type ListingRow } from '@ld/db';
+export { type ListingRow, getListingById } from '@ld/db';
 
 const DB_PATH = process.env.DB_PATH ?? join(homedir(), 'ebay-listings.db');
 
@@ -51,27 +52,6 @@ function applyUploadApiSchema(db: Database.Database): void {
 }
 
 // ── Listing queries ─────────────────────────────────────────────────
-
-export interface ListingRow {
-  id: number;
-  odoo_product_id: number;
-  odoo_product_name: string | null;
-  status: string;
-  listing_data: string;
-  title: string | null;
-  price: number | null;
-  ebay_item_id: string | null;
-  ebay_url: string | null;
-  error_message: string | null;
-  notes: string | null;
-  created_at: string;
-  approved_at: string | null;
-  uploaded_at: string | null;
-}
-
-export function getListingById(db: Database.Database, id: number): ListingRow | undefined {
-  return db.prepare('SELECT * FROM listings WHERE id = ?').get(id) as ListingRow | undefined;
-}
 
 export function getApprovedListings(db: Database.Database): ListingRow[] {
   return db.prepare(
