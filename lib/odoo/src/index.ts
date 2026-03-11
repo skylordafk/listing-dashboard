@@ -8,9 +8,6 @@ export {
   getProductByCode,
   searchProducts,
   countProducts,
-  writeDeviceFields,
-  writeListingFields,
-  writeEbayFields,
   getProductByEbayItemId,
   uploadAttachment,
   getAttachments,
@@ -39,8 +36,4 @@ export type {
   OperatingSystem,
   TestResult,
   EbayStatus,
-  DeviceWritableFields,
-  PhotoWritableFields,
-  ListingWritableFields,
-  EbayWritableFields,
 } from './schema.js';

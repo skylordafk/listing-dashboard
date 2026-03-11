@@ -8,12 +8,6 @@ export type {
   AddItemResult, VerifyAddItemResult, ReviseItemResult,
   TestConnectionResult, Fee, ApiWarning,
   CategorySpecificsResult, CategoryAspect,
-  OdooImage,
-  // eBay Performance types
-  MyeBaySellingResult,
-  EbayActiveItem, EbaySoldItem, EbayUnsoldItem,
-  EbayItemDetail,
-  EbaySellingStatus, EbayListingDetails, EbayTransaction,
 } from './types.js';
 export type {
   CategorySuggestion, CategorySuggestionsResult,
